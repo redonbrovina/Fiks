@@ -1,0 +1,75 @@
+Microservies
+
+Identity
+
+Catalog 
+
+Booking
+
+Feedback
+
+
+
+Sistemi duhet te lejoje nje person te regjistrohet nje here dhe te veproje si klient dhe si profesionist ne te njejtin profil
+Cdo perdorues mund te plotesoje te dhenat shtese per tu bere 'profesionist' pa krijuar llogari te re.
+Perdoruesi duhet te kete mundesi te kaloje nga 'pamja e klientit' ne 'pamje te profesionistit' duke ndare punet e tij.
+
+Nje perdorues mund te deklaroje se ofron sherbime ne kategori te ndryshme
+Nje perdorues mund te ofroje cmime ose detaje te ndryshme per qdo sherbim qe ofron
+
+Tabelat
+Perdorues
+Profesionist
+Sherbim_kategori
+Sherbim_Profesionist
+
+Jo qdo perdorues eshte profesionist
+Qdo profesionist eshte perdorues
+Nje profesionist mund te kete nje ose me shume sherbime profesionale
+Per qdo sherbim professional profesionisti cakton tarifat e tij
+Sherbimet e profesionistit i takojne nje kategorie te sherbimit
+
+
+
+Catalog
+
+Katalogu i mjeshtrave ku listohen sherbimet dhe qmimet e tyre
+
+Profili
+Kategoria
+Sherbimi
+
+profili (Mjeshtri) me te dhenat e tij personale (bio, emri, mosha etj.)
+kategoria - ciles kategori te punes i takon ai
+sherbimi_personal - detaje te sherbimit qe ofron se bashku me qmimin qe e ka
+
+profili ka lidhje 1 me N me sherbimi_personal
+sherbimi_personal ka lidhje 1 me N me kategoria
+
+
+Booking
+
+Kerkesa_punes
+Oferta 
+Termini
+
+
+Feedback Service
+
+Review
+Reputacioni
+
+Reputacioni ---> aggreagate score of previous reviews for a worker
+Review ---> personal review of something
+
+
+
+
+
+
+
+
+
+
+
+
