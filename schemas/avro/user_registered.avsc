@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "UserRegistered",
+  "namespace": "com.fiks.events",
+  "fields": [
+    { "name": "perdoruesiId", "type": "int" },
+    { "name": "emri", "type": "string" },
+    { "name": "email", "type": "string" },
+    { "name": "isProfessional", "type": "boolean" },
+    { "name": "timestamp", "type": "string" }
+  ]
+}

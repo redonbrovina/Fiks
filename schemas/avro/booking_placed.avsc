@@ -1,0 +1,12 @@
+{
+  "type": "record",
+  "name": "BookingPlaced",
+  "namespace": "com.fiks.events",
+  "fields": [
+    { "name": "kerkesaPunesId", "type": "int" },
+    { "name": "perdoruesiId", "type": "string" },
+    { "name": "profesionistiId", "type": ["null", "string"], "default": null },
+    { "name": "kategoriaId", "type": ["null", "string"], "default": null },
+    { "name": "timestamp", "type": "string" }
+  ]
+}

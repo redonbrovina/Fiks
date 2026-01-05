@@ -11,7 +11,7 @@ Running docker compose up from the project root will start up the project. Go
 to terminal and run:
 
 ```
-docker compose up
+docker compose up --build
 ```
 
 This will run all available docker packages/containers.

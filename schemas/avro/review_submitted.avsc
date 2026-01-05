@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "ReviewSubmitted",
+  "namespace": "com.fiks.events",
+  "fields": [
+    { "name": "reviewId", "type": "int" },
+    { "name": "profesionistiId", "type": "string" },
+    { "name": "score", "type": "int" },
+    { "name": "timestamp", "type": "string" }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "name": "fiks",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Event-driven microservice platform for professional services in Kosovo",
+  "workspaces": [
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "docker-compose up",
+    "dev:build": "docker-compose up --build",
+    "dev:down": "docker-compose down",
+    "dev:logs": "docker-compose logs -f",
+    "identity": "npm -w services/identity run dev",
+    "catalog": "npm -w services/catalog run dev",
+    "booking": "npm -w services/booking run dev",
+    "feedback": "npm -w services/feedback run dev",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "keywords": [
+    "microservices",
+    "event-driven",
+    "kafka",
+    "nodejs"
+  ],
+  "author": "",
+  "license": "ISC"
+}
