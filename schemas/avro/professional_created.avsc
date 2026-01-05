@@ -1,0 +1,13 @@
+{
+  "type": "record",
+  "name": "ProfessionalCreated",
+  "namespace": "com.fiks.events",
+  "fields": [
+    { "name": "profesionistiId", "type": "int" },
+    { "name": "perdoruesiId", "type": "int" },
+    { "name": "emri", "type": "string" },
+    { "name": "email", "type": "string" },
+    { "name": "bio", "type": ["null", "string"], "default": null },
+    { "name": "timestamp", "type": "string" }
+  ]
+}
