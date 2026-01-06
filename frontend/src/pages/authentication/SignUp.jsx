@@ -373,7 +373,7 @@ const SignUp = () => {
                                         <span>Duke u procesuar...</span>
                                     </>
                                 ) : (
-                                    <span>Krijo Llogarinne</span>
+                                    <span>Krijo Llogarine</span>
                                 )}
                             </button>
 
