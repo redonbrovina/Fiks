@@ -5,3 +5,128 @@
 body {
   margin: 0
 }
+
+.hero-section-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* IMAGE BEHIND CONTENT */
+.hero-section-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+/* HERO CONTENT ON TOP */
+.hero-section {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.hero-section h1{
+  font-size: 4rem;
+  color: black;
+  font-weight: bold;
+}
+
+.hero-section p{
+  color: black;
+}
+
+.fiks {
+  color: red;
+}
+
+/* SEARCH BAR STYLING */
+.search-bar {
+  margin-top: 1rem;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.search-bar input {
+  padding: 0.75rem;
+  width: 300px;
+  border-radius: 5px;
+  border: none;
+  outline: none;
+  background-color: whitesmoke;
+  color: black;
+}
+
+.search-bar button {
+  padding: 0.75rem 1rem;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  background-color: #ff6b00;
+  color: white;
+  font-weight: bold;
+}
+
+/* Sherbimet section */
+
+/* Sherbimet section container */
+.sherbimet-section {
+  display: flex;
+  flex-direction: column;
+  /* Stack text on top of images */
+  align-items: center;
+  /* Center everything horizontally */
+  padding: 4rem 2rem;
+  /* Add vertical padding */
+  background-color: #f9f9f9;
+  /* Match the light grey background from the target */
+}
+
+.sherbimet-section h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+  width: 100%;
+  max-width: 1000px;
+  /* Keep text aligned with the grid width */
+}
+
+.sherbimet-section p {
+  color: #666;
+  margin-bottom: 2.5rem;
+  width: 100%;
+  max-width: 1000px;
+}
+
+/* The Grid Wrapper */
+.sherbimet-img-wrapper {
+  display: grid;
+  /* Creates 3 equal columns */
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3rem;
+  /* Space between the cards */
+  max-width: 1000px;
+  /* Limits the width of the section */
+  width: 100%;
+}
+
+/* Ensure images fill their container properly */
+.sherbimet-img {
+  width: 100%;
+  height: 200px;
+  /* Fixed height for consistency */
+  object-fit: cover;
+  border-radius: 4px;
+}
