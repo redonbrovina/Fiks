@@ -20,6 +20,7 @@ export default function Navbar() {
                 <div className="flex flex-row items-center justify-evenly md:w-1/3">
                     <NavLink to="/sherbimet" className="nav-section">Sherbimet Tona</NavLink>
                     <NavLink to="/rreth-nesh" className="nav-section">Rreth Nesh</NavLink>
+                    <NavLink to="/home" className="nav-section">Home</NavLink>
                 </div>
                 <div className="flex flex-row items-center justify-evenly md:w-1/3">
                     <NavLink to="/login"><button className="btn-style-light">Hyr</button></NavLink>
