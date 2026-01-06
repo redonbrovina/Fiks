@@ -20,7 +20,6 @@ function App() {
           {/* Client routes */}
           <Route element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="/home" element={<Home />} /> 
             <Route path="/rreth-nesh" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/sherbimet" element={<Sherbimet />} />
