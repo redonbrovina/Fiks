@@ -37,8 +37,8 @@ class AuthService {
 
         return RefreshToken.create({
             token,
-            perdoruesi_id: perdoruesiId,
-            expires_at: expiresAt
+            perdoruesiId: perdoruesiId,
+            expiresAt: expiresAt
         });
     }
 
@@ -66,10 +66,10 @@ class AuthService {
             qyteti_id
         });
 
-        // Assign default role (client)
+        // Assign default role (klient)
         const [clientRole] = await Roli.findOrCreate({
-            where: { lloji: 'client' },
-            defaults: { lloji: 'client' }
+            where: { lloji: 'klient' },
+            defaults: { lloji: 'klient' }
         });
         await perdoruesi.addRolet(clientRole);
 
@@ -93,12 +93,6 @@ class AuthService {
             perdoruesi_id: perdoruesi.perdoruesi_id,
             bio
         });
-
-        const [profRole] = await Roli.findOrCreate({
-            where: { lloji: 'professional' },
-            defaults: { lloji: 'professional' }
-        });
-        await perdoruesi.addRolet(profRole);
 
         return profesionisti;
     }
