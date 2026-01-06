@@ -6,6 +6,7 @@ import Home from './pages/client/Home'
 import Sherbimet from './pages/client/Sherbimet'
 import SignIn from './pages/authentication/SignIn'
 import SignUp from './pages/authentication/SignUp'
+import SignUpSuccess from './pages/authentication/SignUpSuccess'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
           {/* Authentication routes */}
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/signup-success" element={<SignUpSuccess />} />
 
           {/* Client routes */}
           <Route element={<Layout />}>

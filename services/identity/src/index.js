@@ -4,10 +4,12 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const { runSeeder } = require('./seeder');
 
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
+const qytetiRoutes = require('./routes/qyteti');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,6 +28,7 @@ app.get('/health', (req, res) => {
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/qytetet', qytetiRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -48,19 +51,22 @@ const startServer = async () => {
     try {
         // Test database connection
         await sequelize.authenticate();
-        console.log('✅ Database connection established');
+        console.log('[OK] Database connection established');
 
         // Sync models (in development only)
         if (process.env.NODE_ENV === 'development') {
             await sequelize.sync({ alter: true });
-            console.log('✅ Database models synchronized');
+            console.log('[OK] Database models synchronized');
+
+            // Run seeders
+            await runSeeder();
         }
 
         app.listen(PORT, () => {
-            console.log(`🚀 Identity service running on port ${PORT}`);
+            console.log(`[RUNNING] Identity service on port ${PORT}`);
         });
     } catch (error) {
-        console.error('❌ Unable to start server:', error);
+        console.error('[ERROR] Unable to start server:', error);
         process.exit(1);
     }
 };
