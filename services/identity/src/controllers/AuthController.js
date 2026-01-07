@@ -7,7 +7,7 @@ class AuthController {
      */
     async register(req, res, next) {
         try {
-            const { emri, email, fjalekalimi, adresa, nr_telefonit, qyteti_id, isProfessional, bio } = req.body;
+            const { emri, email, fjalekalimi, adresa, nr_telefonit, qyteti_id, isProfessional, bio, service } = req.body;
 
             const result = await AuthService.register({
                 emri,
@@ -35,7 +35,15 @@ class AuthController {
                     perdoruesi_id: result.perdoruesi.perdoruesi_id,
                     emri: result.perdoruesi.emri,
                     email: result.perdoruesi.email,
-                    bio: profesionisti.bio
+                    nr_telefonit: result.perdoruesi.nr_telefonit,
+                    bio: profesionisti.bio,
+                    // Service data for Catalog to create Sherbimi
+                    service: service ? {
+                        titulli: service.titulli,
+                        pershkrimi: service.pershkrimi || '',
+                        cmimi: service.cmimi,
+                        kategoria_id: service.kategoria_id
+                    } : null
                 });
             }
 

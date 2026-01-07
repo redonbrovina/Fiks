@@ -1,20 +1,45 @@
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080';
 
 /**
- * Token management utilities
+ * Token and user management utilities
  */
+
 export const tokenStorage = {
     setTokens: (accessToken, refreshToken) => {
         localStorage.setItem('accessToken', accessToken);
         localStorage.setItem('refreshToken', refreshToken);
     },
 
+    setUser: (user) => {
+        localStorage.setItem('user', JSON.stringify(user));
+    },
+
     getAccessToken: () => localStorage.getItem('accessToken'),
     getRefreshToken: () => localStorage.getItem('refreshToken'),
+
+    getUser: () => {
+        const user = localStorage.getItem('user');
+        return user ? JSON.parse(user) : null;
+    },
+
+    getUserRoles: () => {
+        const user = tokenStorage.getUser();
+        return user?.rolet?.map(r => r.lloji) || [];
+    },
+
+    hasRole: (role) => {
+        const roles = tokenStorage.getUserRoles();
+        return roles.includes(role);
+    },
+
+    isAdmin: () => tokenStorage.hasRole('admin'),
+    isClient: () => tokenStorage.hasRole('klient'),
+    isProfessional: () => tokenStorage.hasRole('profesionist'),
 
     clearTokens: () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
+        localStorage.removeItem('user');
     },
 
     isAuthenticated: () => !!localStorage.getItem('accessToken'),
@@ -185,6 +210,25 @@ export const qytetiApi = {
 };
 
 /**
+ * User API
+ */
+export const userApi = {
+    getMe: () => fetchApi('/api/users/me'),
+    updateMe: (userData) => fetchApi('/api/users/me', {
+        method: 'PUT',
+        body: userData,
+    }),
+    becomeProfessional: (data) => fetchApi('/api/users/me/professional', {
+        method: 'POST',
+        body: data,
+    }),
+    updateProfessional: (data) => fetchApi('/api/users/me/professional', {
+        method: 'PUT',
+        body: data,
+    }),
+};
+
+/**
  * Catalog API - Profile Management
  */
 export const catalogApi = {
@@ -204,7 +248,7 @@ export const catalogApi = {
     uploadProfileImage: (profesionistiId, imageFile) => {
         const formData = new FormData();
         formData.append('image', imageFile);
-        
+
         return fetchApi(`/api/v1/catalog/profile/${profesionistiId}/upload-image`, {
             method: 'POST',
             headers: {}, // Let browser set Content-Type for FormData

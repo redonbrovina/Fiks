@@ -16,7 +16,13 @@ const validate = (req, res, next) => {
 const registerValidation = [
     body('emri').notEmpty().withMessage('Emri është i detyrueshëm'),
     body('email').isEmail().withMessage('Email i pavlefshëm'),
-    body('fjalekalimi').isLength({ min: 6 }).withMessage('Fjalëkalimi duhet të ketë të paktën 6 karaktere')
+    body('fjalekalimi').isLength({ min: 6 }).withMessage('Fjalëkalimi duhet të ketë të paktën 6 karaktere'),
+    body('adresa').notEmpty().withMessage('Adresa është e detyrueshme'),
+    body('qyteti_id').notEmpty().isInt().withMessage('Qyteti është i detyrueshëm'),
+    // Service validation - required if isProfessional is true
+    body('service.titulli').if(body('isProfessional').equals(true)).notEmpty().withMessage('Titulli i shërbimit është i detyrueshëm'),
+    body('service.cmimi').if(body('isProfessional').equals(true)).isFloat({ min: 0 }).withMessage('Çmimi duhet të jetë numër pozitiv'),
+    body('service.kategoria_id').if(body('isProfessional').equals(true)).isInt().withMessage('Kategoria është e detyrueshme')
 ];
 
 const loginValidation = [

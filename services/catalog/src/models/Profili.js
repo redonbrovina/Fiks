@@ -11,6 +11,11 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING(100),
             allowNull: false
         },
+        perdoruesi_id: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            unique: true
+        },
         email: {
             type: DataTypes.STRING(255),
             allowNull: false
@@ -24,7 +29,7 @@ module.exports = (sequelize) => {
             allowNull: true
         },
         profesionisti_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: false,
             unique: true
         },

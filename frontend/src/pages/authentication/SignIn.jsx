@@ -33,11 +33,17 @@ const SignIn = () => {
                 fjalekalimi: formData.fjalekalimi
             });
 
-            // Store tokens
+            // Store tokens and user data
             tokenStorage.setTokens(result.accessToken, result.refreshToken);
+            tokenStorage.setUser(result.perdoruesi);
 
-            // Redirect to dashboard
-            navigate('/dashboard');
+            // Redirect based on role
+            const roles = result.perdoruesi.rolet?.map(r => r.lloji) || [];
+            if (roles.includes('admin')) {
+                navigate('/admin-dashboard');
+            } else {
+                navigate('/dashboard');
+            }
         } catch (error) {
             if (error.status === 401) {
                 setApiError('Email ose fjalëkalimi i gabuar');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import fiksLogo from '../../assets/images/fiks.png';
-import { authApi, qytetiApi, tokenStorage } from '../../services/api';
+import { authApi, qytetiApi, catalogApi, tokenStorage } from '../../services/api';
 
 const SignUp = () => {
     const navigate = useNavigate();
@@ -9,32 +9,61 @@ const SignUp = () => {
         emri: '',
         email: '',
         nr_telefonit: '',
+        adresa: '',
         fjalekalimi: '',
         qyteti_id: '',
         isProfessional: false,
-        bio: ''
+        bio: '',
+        service: {
+            titulli: '',
+            pershkrimi: '',
+            cmimi: '',
+            kategoria_id: ''
+        }
     });
     const [cities, setCities] = useState([]);
+    const [categories, setCategories] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [errors, setErrors] = useState({});
     const [apiError, setApiError] = useState('');
 
-    // Fetch cities on mount
+    // Fetch cities and categories on mount
     useEffect(() => {
-        const fetchCities = async () => {
+        const fetchData = async () => {
             try {
-                const data = await qytetiApi.getAll();
-                setCities(data);
+                const [citiesData, categoriesData] = await Promise.all([
+                    qytetiApi.getAll(),
+                    catalogApi.getCategories()
+                ]);
+                setCities(citiesData);
+                setCategories(categoriesData);
             } catch (error) {
-                console.error('Failed to fetch cities:', error);
+                console.error('Failed to fetch data:', error);
             }
         };
-        fetchCities();
+        fetchData();
     }, []);
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
+
+        // Handle nested service fields
+        if (name.startsWith('service.')) {
+            const field = name.split('.')[1];
+            setFormData(prev => ({
+                ...prev,
+                service: {
+                    ...prev.service,
+                    [field]: value
+                }
+            }));
+            if (errors[name]) {
+                setErrors({ ...errors, [name]: '' });
+            }
+            return;
+        }
+
         setFormData({
             ...formData,
             [name]: type === 'checkbox' ? checked : value
@@ -72,6 +101,11 @@ const SignUp = () => {
             }
         }
 
+        // Address validation (required for all users)
+        if (!formData.adresa.trim()) {
+            newErrors.adresa = 'Adresa eshte e detyrueshme';
+        }
+
         // Password validation
         if (!formData.fjalekalimi) {
             newErrors.fjalekalimi = 'Fjalekalimi eshte i detyrueshem';
@@ -87,6 +121,19 @@ const SignUp = () => {
         // Professional bio validation
         if (formData.isProfessional && formData.bio && formData.bio.length > 500) {
             newErrors.bio = 'Bio nuk mund te kete me shume se 500 karaktere';
+        }
+
+        // Service validation (required if isProfessional)
+        if (formData.isProfessional) {
+            if (!formData.service.titulli.trim()) {
+                newErrors['service.titulli'] = 'Titulli i sherbimit eshte i detyrueshem';
+            }
+            if (!formData.service.cmimi || parseFloat(formData.service.cmimi) <= 0) {
+                newErrors['service.cmimi'] = 'Cmimi per ore eshte i detyrueshem';
+            }
+            if (!formData.service.kategoria_id) {
+                newErrors['service.kategoria_id'] = 'Ju lutem zgjedhni kategorine';
+            }
         }
 
         setErrors(newErrors);
@@ -108,10 +155,17 @@ const SignUp = () => {
                 emri: formData.emri.trim(),
                 email: formData.email.trim().toLowerCase(),
                 fjalekalimi: formData.fjalekalimi,
+                adresa: formData.adresa.trim(),
                 nr_telefonit: formData.nr_telefonit || null,
                 qyteti_id: parseInt(formData.qyteti_id),
                 isProfessional: formData.isProfessional,
-                bio: formData.isProfessional ? formData.bio : null
+                bio: formData.isProfessional ? formData.bio : null,
+                service: formData.isProfessional ? {
+                    titulli: formData.service.titulli.trim(),
+                    pershkrimi: formData.service.pershkrimi?.trim() || '',
+                    cmimi: parseFloat(formData.service.cmimi),
+                    kategoria_id: parseInt(formData.service.kategoria_id)
+                } : null
             });
 
             // Store tokens
@@ -173,7 +227,7 @@ const SignUp = () => {
                         Bashkohu me platformen me te madhe te sherbimeve
                     </h2>
                     <p className="text-white/70 text-lg font-medium">
-                        Krijo llogarinne tende dhe gjej profesionistet e duhur ose ofro sherbimet tua.
+                        Krijo llogarine tende dhe gjej profesionistet e duhur ose ofro sherbimet tua.
                     </p>
                 </div>
 
@@ -189,7 +243,7 @@ const SignUp = () => {
             <div className="flex-1 bg-[#E6E6E6] flex items-center justify-center p-6 md:p-12 lg:p-16 overflow-y-auto">
                 <div className="w-full max-w-2xl bg-white md:p-10 lg:p-12 md:rounded-[3rem] shadow-xl shadow-gray-200/50 border border-gray-100 flex flex-col justify-center min-h-max">
                     <div className="mb-8">
-                        <h1 className="text-3xl font-bold text-[#444444] mb-2 tracking-tight">Krijoni llogarinne</h1>
+                        <h1 className="text-3xl font-bold text-[#444444] mb-2 tracking-tight">Krijoni llogarine</h1>
                         <p className="text-gray-400 font-medium italic text-sm">Plotesoni te dhenat per te filluar rrugetimin tuaj.</p>
                     </div>
 
@@ -281,6 +335,23 @@ const SignUp = () => {
                             {errors.qyteti_id && <p className="text-red-500 text-xs ml-1 mt-1">{errors.qyteti_id}</p>}
                         </div>
 
+                        {/* Address Field */}
+                        <div className="space-y-1.5 md:col-span-2">
+                            <label htmlFor="adresa" className="block text-sm font-bold text-[#444444] ml-1">
+                                Adresa
+                            </label>
+                            <input
+                                type="text"
+                                id="adresa"
+                                name="adresa"
+                                value={formData.adresa}
+                                onChange={handleChange}
+                                placeholder="Rruga, Numri, Lagja"
+                                className={`w-full px-5 py-3.5 bg-gray-50 border-2 ${errors.adresa ? 'border-red-300' : 'border-transparent'} focus:border-[#C00F0C]/10 rounded-2xl text-[#444444] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#C00F0C]/5 transition-all duration-300 text-sm font-medium`}
+                            />
+                            {errors.adresa && <p className="text-red-500 text-xs ml-1 mt-1">{errors.adresa}</p>}
+                        </div>
+
                         {/* Password Field */}
                         <div className="space-y-1.5 md:col-span-2">
                             <label htmlFor="fjalekalimi" className="block text-sm font-bold text-[#444444] ml-1">
@@ -336,10 +407,11 @@ const SignUp = () => {
                             </div>
 
                             {formData.isProfessional && (
-                                <div className="mt-4 grid grid-cols-1 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="space-y-1.5">
+                                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-300">
+                                    {/* Bio Field */}
+                                    <div className="space-y-1.5 md:col-span-2">
                                         <label htmlFor="bio" className="block text-xs font-bold text-[#444444] ml-1">
-                                            Pershkruani pervoojen tuaj (Bio)
+                                            Pershkruani pervojen tuaj (Bio)
                                         </label>
                                         <textarea
                                             id="bio"
@@ -352,6 +424,97 @@ const SignUp = () => {
                                         ></textarea>
                                         {errors.bio && <p className="text-red-500 text-xs ml-1 mt-1">{errors.bio}</p>}
                                         <p className="text-xs text-gray-400 ml-1">{formData.bio.length}/500 karaktere</p>
+                                    </div>
+
+                                    {/* Service Section Header */}
+                                    <div className="md:col-span-2 mt-2">
+                                        <h4 className="font-bold text-[#444444] text-sm">Sherbimi juaj i pare</h4>
+                                        <p className="text-xs text-[#444444]/60">Plotesoni te dhenat per sherbimin qe ofroni</p>
+                                    </div>
+
+                                    {/* Service Title */}
+                                    <div className="space-y-1.5">
+                                        <label htmlFor="service.titulli" className="block text-xs font-bold text-[#444444] ml-1">
+                                            Titulli i Sherbimit *
+                                        </label>
+                                        <input
+                                            type="text"
+                                            id="service.titulli"
+                                            name="service.titulli"
+                                            value={formData.service.titulli}
+                                            onChange={handleChange}
+                                            placeholder="p.sh. Pastrim Shtepie"
+                                            className={`w-full px-4 py-2.5 bg-white border-2 ${errors['service.titulli'] ? 'border-red-300' : 'border-transparent'} focus:border-[#C00F0C]/10 rounded-xl text-[#444444] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#C00F0C]/5 transition-all duration-300 text-xs font-medium`}
+                                        />
+                                        {errors['service.titulli'] && <p className="text-red-500 text-xs ml-1 mt-1">{errors['service.titulli']}</p>}
+                                    </div>
+
+                                    {/* Service Price */}
+                                    <div className="space-y-1.5">
+                                        <label htmlFor="service.cmimi" className="block text-xs font-bold text-[#444444] ml-1">
+                                            Cmimi per Ore (€) *
+                                        </label>
+                                        <input
+                                            type="number"
+                                            id="service.cmimi"
+                                            name="service.cmimi"
+                                            value={formData.service.cmimi}
+                                            onChange={handleChange}
+                                            placeholder="15.00"
+                                            min="0"
+                                            step="0.50"
+                                            className={`w-full px-4 py-2.5 bg-white border-2 ${errors['service.cmimi'] ? 'border-red-300' : 'border-transparent'} focus:border-[#C00F0C]/10 rounded-xl text-[#444444] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#C00F0C]/5 transition-all duration-300 text-xs font-medium`}
+                                        />
+                                        {errors['service.cmimi'] && <p className="text-red-500 text-xs ml-1 mt-1">{errors['service.cmimi']}</p>}
+                                    </div>
+
+                                    {/* Service Category */}
+                                    <div className="space-y-1.5">
+                                        <label htmlFor="service.kategoria_id" className="block text-xs font-bold text-[#444444] ml-1">
+                                            Kategoria *
+                                        </label>
+                                        <div className="relative">
+                                            <select
+                                                id="service.kategoria_id"
+                                                name="service.kategoria_id"
+                                                value={formData.service.kategoria_id}
+                                                onChange={handleChange}
+                                                className={`w-full px-4 py-2.5 bg-white border-2 ${errors['service.kategoria_id'] ? 'border-red-300' : 'border-transparent'} focus:border-[#C00F0C]/10 rounded-xl text-[#444444] focus:outline-none focus:ring-4 focus:ring-[#C00F0C]/5 transition-all duration-300 text-xs font-medium appearance-none cursor-pointer pr-10`}
+                                            >
+                                                <option value="">Zgjedhni kategorine</option>
+                                                {categories.map((cat) => (
+                                                    <optgroup key={cat.kategoria_id} label={cat.lloji_kategorise}>
+                                                        {cat.nenKategorite?.map((sub) => (
+                                                            <option key={sub.kategoria_id} value={sub.kategoria_id}>
+                                                                {sub.lloji_kategorise}
+                                                            </option>
+                                                        ))}
+                                                    </optgroup>
+                                                ))}
+                                            </select>
+                                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-[#444444]/40">
+                                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                        {errors['service.kategoria_id'] && <p className="text-red-500 text-xs ml-1 mt-1">{errors['service.kategoria_id']}</p>}
+                                    </div>
+
+                                    {/* Service Description */}
+                                    <div className="space-y-1.5">
+                                        <label htmlFor="service.pershkrimi" className="block text-xs font-bold text-[#444444] ml-1">
+                                            Pershkrimi (Opsional)
+                                        </label>
+                                        <textarea
+                                            id="service.pershkrimi"
+                                            name="service.pershkrimi"
+                                            value={formData.service.pershkrimi}
+                                            onChange={handleChange}
+                                            placeholder="Pershkruani sherbimin tuaj..."
+                                            rows="2"
+                                            className="w-full px-4 py-2.5 bg-white border-2 border-transparent focus:border-[#C00F0C]/10 rounded-xl text-[#444444] placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#C00F0C]/5 transition-all duration-300 text-xs font-medium resize-none"
+                                        ></textarea>
                                     </div>
                                 </div>
                             )}
