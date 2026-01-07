@@ -5,6 +5,9 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
 const { runSeeder } = require('./seeder');
+const client = require('prom-client');
+const redisClient = require('./config/redis');
+const KafkaProducer = require('./services/KafkaProducer');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -13,6 +16,16 @@ const qytetiRoutes = require('./routes/qyteti');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Metrics Registry
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
+
+// Attach redis to req
+app.use((req, res, next) => {
+    req.redisClient = redisClient;
+    next();
+});
 
 // Middleware
 app.use(helmet());
@@ -23,6 +36,12 @@ app.use(express.json());
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'identity' });
+});
+
+// Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
 });
 
 // Routes
@@ -72,3 +91,6 @@ const startServer = async () => {
 };
 
 startServer();
+
+// Export redisClient for use in services
+module.exports = { app, redisClient };

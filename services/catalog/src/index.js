@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
 const routes = require('./routes');
+const KafkaConsumer = require('./services/KafkaConsumer');
+const { runSeeder } = require('./seeder');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -45,10 +47,19 @@ const startServer = async () => {
         await sequelize.authenticate();
         console.log('✅ Database connection established');
 
-        if (process.env.NODE_ENV === 'development') {
+        // Run sync and seeder in non-production environments
+        if (process.env.NODE_ENV !== 'production') {
             await sequelize.sync({ alter: true });
             console.log('✅ Database models synchronized');
+
+            // Run category seeder
+            await runSeeder();
+            console.log('✅ Category seeder completed');
         }
+
+        // Start Kafka consumer
+        await KafkaConsumer.connect();
+        console.log('✅ Kafka consumer connected');
 
         app.listen(PORT, () => {
             console.log(`🚀 Catalog service running on port ${PORT}`);
@@ -60,3 +71,4 @@ const startServer = async () => {
 };
 
 startServer();
+

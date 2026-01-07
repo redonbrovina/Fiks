@@ -1,4 +1,4 @@
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, NavLink, Link } from 'react-router-dom';
 import { authApi, tokenStorage } from '../services/api';
 import fiksLogo from '../assets/images/fiks.png';
 
@@ -17,16 +17,18 @@ export default function UserNavbar() {
         }
     };
 
+    const navLinkClass = ({ isActive }) =>
+        `text-sm font-bold transition-colors ${isActive ? 'text-[#C00F0C]' : 'text-[#444444]/60 hover:text-[#C00F0C]'
+        }`;
+
     return (
         <nav className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between sticky top-0 z-50">
             <div className="flex items-center gap-8">
-                <Link to="/dashboard" className="flex items-center gap-2">
-                    <span className="text-xl font-bold text-[#444444] tracking-tight">Fiks<span className="text-[#C00F0C]">.</span></span>
-                </Link>
-
-                <div className="hidden md:flex items-center gap-6">
-                    <Link to="/dashboard" className="text-sm font-bold text-[#C00F0C]">Dashboard</Link>
-                    <Link to="/bookings" className="text-sm font-bold text-[#444444]/60 hover:text-[#C00F0C] transition-colors">Rezervimet</Link>
+                <div className="md:flex items-center gap-6">
+                    <NavLink to="/dashboard" className={navLinkClass}>Dashboard</NavLink>
+                    <NavLink to="/professional-dashboard" className={navLinkClass}>Paneli Profesionist</NavLink>
+                    <NavLink to="/marketplace" className={navLinkClass}>Marketi</NavLink>
+                    <NavLink to="/bookings" className={navLinkClass}>Rezervimet</NavLink>
                 </div>
             </div>
 

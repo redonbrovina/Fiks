@@ -21,11 +21,7 @@ module.exports = (sequelize) => {
         },
         cmimi: {
             type: DataTypes.DECIMAL(10, 2),
-            allowNull: true
-        },
-        koha_punes: {
-            type: DataTypes.STRING(50),
-            allowNull: true
+            allowNull: false
         },
         profili_id: {
             type: DataTypes.INTEGER,

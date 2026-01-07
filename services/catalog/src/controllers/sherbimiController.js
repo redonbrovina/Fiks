@@ -5,7 +5,7 @@ const { validationResult } = require('express-validator');
 const getProfessionalServices = async (req, res) => {
     try {
         const { profesionistiId } = req.params;
-        
+
         const services = await Sherbimi.findAll({
             where: { profili_id: profesionistiId },
             include: [
@@ -29,7 +29,7 @@ const getProfessionalServices = async (req, res) => {
 const getService = async (req, res) => {
     try {
         const { serviceId } = req.params;
-        
+
         const service = await Sherbimi.findOne({
             where: { sherbimi_id: serviceId },
             include: [
@@ -65,15 +65,15 @@ const createService = async (req, res) => {
             return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
         }
 
-        const { titulli, pershkrimi, kategoria_id, cmimi, koha_punes, profili_id } = req.body;
+        const { titulli, pershkrimi, kategoria_id, cmimi, koha_punes } = req.body;
 
-        // Verify that the profile exists and belongs to the authenticated user
+        // Find profile belonging to the authenticated user
         const profile = await Profili.findOne({
-            where: { profili_id, profesionisti_id: req.user.userId }
+            where: { perdoruesi_id: req.user.perdoruesi_id }
         });
 
         if (!profile) {
-            return res.status(404).json({ error: { message: 'Profile not found or access denied' } });
+            return res.status(404).json({ error: { message: 'Professional profile not found. Please upgrade to professional account first.' } });
         }
 
         const service = await Sherbimi.create({
@@ -82,7 +82,7 @@ const createService = async (req, res) => {
             kategoria_id,
             cmimi,
             koha_punes,
-            profili_id
+            profili_id: profile.profili_id
         });
 
         // Fetch the created service with associations

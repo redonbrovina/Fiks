@@ -65,30 +65,32 @@ class PerdoruesiController {
      */
     async becomeProfessional(req, res, next) {
         try {
-            const { bio } = req.body;
+            const { bio, service } = req.body;
 
-            // Check if already a professional
-            const existing = await PerdoruesiService.getProfesionisti(req.user.perdoruesi_id);
-            if (existing) {
-                return res.status(409).json({ error: { message: 'Tashmë jeni profesionist' } });
-            }
-
-            // Get user and create professional
-            const perdoruesi = await PerdoruesiService.getById(req.user.perdoruesi_id);
-            const profesionisti = await AuthService.createProfessional(perdoruesi, bio);
+            // Upgrade user using AuthService (handles roles, tokens, DB)
+            const result = await AuthService.upgradeToProfessional(req.user.perdoruesi_id, { bio });
 
             // Publish event
             await KafkaProducer.publish('professional_created', {
-                profesionisti_id: profesionisti.profesionisti_id,
-                perdoruesi_id: req.user.perdoruesi_id,
-                emri: perdoruesi.emri,
-                email: perdoruesi.email,
-                bio: profesionisti.bio
+                profesionisti_id: result.profesionisti.profesionisti_id,
+                perdoruesi_id: result.perdoruesi.perdoruesi_id,
+                emri: result.perdoruesi.emri,
+                email: result.perdoruesi.email,
+                nr_telefonit: result.perdoruesi.nr_telefonit,
+                bio: result.profesionisti.bio,
+                // Service data for Catalog to create Sherbimi
+                service: service ? {
+                    titulli: service.titulli,
+                    pershkrimi: service.pershkrimi || '',
+                    cmimi: service.cmimi,
+                    kategoria_id: service.kategoria_id
+                } : null
             });
 
             res.status(201).json({
                 message: 'U bëtë profesionist me sukses',
-                profesionisti
+                profesionisti: result.profesionisti,
+                tokens: result.tokens
             });
         } catch (error) {
             next(error);

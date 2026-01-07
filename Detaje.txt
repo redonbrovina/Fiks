@@ -1,0 +1,152 @@
+Detaje për secilën nga kategoritë e kërkesave teknike për implementimin e projekteve në Sistemet
+e Procesimit të Dhënave Dizajnuese:
+1. Arkitektura e Sistemit
+• Mikrosherbimet e Avancuara:
+• Shërbime të pavarura dhe të vetë-menaxhueshme: Çdo mikrosherbim duhet të ketë
+logjikë biznesi, bazë të dhënash të vetën dhe mekanizma resiliencë (retry, fallback).
+• Service Mesh (p.sh. Istio, Linkerd): Për menaxhimin e trafikut, enkriptimin TLS midis
+shërbimeve, dhe observabilitetin qendror.
+• Event-driven Architecture: Implementimi i mekanizmave pub/sub (p.sh. Kafka,
+RabbitMQ) për ndërveprim të bazuar në ngjarje, në vend të thirrjeve direkte API.
+• Containers dhe Orkestrimi:
+• Docker Compose për zhvillim lokal dhe Kubernetes (K8s) për prodhim me
+konfigurime Helm Charts ose Kustomize.
+• Auto-scaling & Auto-healing: Shërbimet duhet të ripërtërihen automatikisht në rast
+dështimi dhe të shkallëzohen bazuar në metrikat e ngarkesës (CPU, RAM, latency).
+• Service Discovery & Config Management: Përdorimi i Consul ose etcd për zbulimin
+dinamik të shërbimeve dhe konfigurimeve.
+• Shkëmbimi i mesazheve:
+• Kafka + Schema Registry: Ruajtja e versioneve të skemave për të garantuar
+përputhshmëri midis prodhuesve dhe konsumatorëve.
+• Dead Letter Queues (DLQ): Menaxhimi i ngjarjeve të dështuara për procesim të
+mëvonshëm.
+2. Të Dhënat
+• Modelimi i të Dhënave:
+• Modelimi konceptual, logjik dhe fizik me përdorimin e UML dhe ERD.
+• Data Domain Modeling: Ndarja e fushave (domain-based modeling) për shkallëzim më
+të mirë.
+• Hybrid Storage Models: Kombinimi i relacionalëve (PostgreSQL) me NoSQL
+(MongoDB, Cassandra) për nevoja të ndryshme.
+• Përpunimi i të Dhënave:
+• Apache Spark Structured Streaming për përpunim në kohë reale dhe batch në të
+njëjtën platformë.
+• ETL/ELT Pipelines të implementuara me Apache Airflow, Dagster ose Prefect.
+• Data Quality Validation: Aplikimi i rregullave të cilësisë (Great Expectations) për të
+siguruar integritetin e të dhënave.
+• Data Lakes vs Data Warehouses:
+• Data Lakehouse (Delta Lake, Iceberg): Kombinim i fleksibilitetit të Data Lake dhe
+strukturës së Data Warehouse.
+• Federated Query Engines (Presto/Trino) për pyetje ndër-platformëshe (SQL mbi
+burime të ndryshme).
+3. Siguria
+• Politikat e Sigurisë:
+• Zero Trust Architecture: Çdo kërkesë trajtohet si e pasigurt derisa të verifikohet
+plotësisht.
+• OAuth2, OpenID Connect dhe JWT për autentikim dhe autorizim të shpërndarë.
+• Secrets Management (Vault): Menaxhimi i çelësave, kredencialeve dhe certifikatave.
+• Monitorimi i Aktiviteteve:
+• SIEM & SOAR Systems (Splunk, ELK Stack, Azure Sentinel) për zbulim, reagim dhe
+automatizim të incidenteve.
+• Behavioral Analytics: Identifikimi i sjelljeve jonormale përmes algoritmeve të mësimit
+makinerik.
+• Auditimi i të Dhënave:
+• Immutable Audit Logs (Blockchain-based) për integritet të plotë.
+• Data Access Governance (DAG): Monitorim i qasjes së përdoruesve në të dhëna kritike.
+4. Performanca
+• Caching:
+• Redis Cluster & Memcached për cache të shpërndarë.
+• Write-through / Write-behind Caching për sinkronizim me bazën e të dhënave.
+• Edge Caching me Cloudflare ose Akamai për ulje të latencës globale.
+• Indeksimi:
+• Full-text Search (Elasticsearch, Solr) për pyetje komplekse tekstuale.
+• Columnar Storage (Parquet, ORC) për përshpejtim të analizave në sisteme të mëdha.
+• Load Balancing:
+• Layer 7 Load Balancing (NGINX, Envoy) për ruterim inteligjent bazuar në përmbajtje.
+• Blue-Green & Canary Deployments për dërgim gradual të përditësimeve pa ndërprerje.
+5. Ndihma për Vendimmarrje
+• Analiza e Avancuar:
+• Predictive & Prescriptive Analytics duke përdorur ML ops (TensorFlow Serving,
+MLflow).
+• AutoML Platforms për gjenerim automatik të modeleve.
+• Geospatial Analytics (PostGIS, QGIS) për të dhëna me komponent hapësinor.
+• Raportimi në Kohë Reale:
+• Grafana & Power BI Embedded për dashboard-e interaktive.
+• Event-driven Notifications përmes webhook, SMS, ose push notifications.
+• Data Mining:
+• Clustering (K-Means, DBSCAN) për grupim të inteligjent të të dhënave.
+• Association Rule Mining (Apriori, FP-Growth) për analizë të varësive midis
+elementëve.
+6. Automatizimi dhe Monitorimi
+• Pipeline të Automatizuar:
+• CI/CD Integrime me Jenkins, GitLab CI/CD ose GitHub Actions për dërgim
+automatik të versioneve.
+• Infrastructure as Code (IaC) me Terraform ose Ansible për menaxhim të automatizuar
+të infrastrukturës.
+• Monitoring dhe Alerting:
+• Prometheus + Grafana për metrika dhe alarmime.
+• Distributed Tracing (Jaeger, OpenTelemetry) për gjurmimin e kërkesave ndër
+mikrosherbime.
+• Menaxhimi i Incidentit:
+• Runbooks & Playbooks të dokumentuara për rikuperim.
+• Chaos Engineering (Gremlin, Chaos Monkey) për testim të qëndrueshmërisë së
+sistemit në kushte të dështimit.
+7. Standardet dhe Praktikat më të Mira
+• Standardet e të Dhënave:
+• Avro, Parquet, ORC për efikasitet në ruajtje dhe pyetje analitike.
+• API Governance (OpenAPI + AsyncAPI) për dokumentim dhe kontroll të versioneve të
+API-ve.
+• Kontrolli i Versioneve:
+• GitOps për orkestrim të bazuar në kontroll versioni.
+• Semantic Versioning (SemVer) për standardizimin e publikimeve.
+• Praktikat e Zhvillimit:
+• Agile + DevOps + DataOps për cikël zhvillimor të integruar.
+• Code Review të detyrueshme dhe Static Code Analysis (SonarQube) për cilësi të lartë
+të kodit.
+• Pair Programming dhe Peer Learning për rritje të kompetencës ekipore.
+💡 Për Përdorim Akademik
+Ky set kërkesash është i përshtatshëm për:
+• Projekte semestrale që simulojnë zhvillimin e një sistemi të madh të procesimit të
+dhënave.
+• Punime diplome / masteri që trajtojnë aspekte të shkallëzueshmërisë, sigurisë ose
+automatizimit në arkitekturat moderne të të dhënave.
+• Laboratorë praktikë me fokus në CI/CD, Kubernetes, Kafka dhe analizë të avancuar të
+të dhënave.
+8. Dokumentimi dhe Dorëzimi i Projektit
+Ky seksion përcakton mënyrën e dokumentimit, përgatitjes dhe dorëzimit të projekteve
+përfundimtare nga studentët, në përputhje me standardet akademike dhe kërkesat e kursit.
+• Dokumentimi i Projektit:
+• Raporti teknik duhet të dorëzohet në formatin .docx (Microsoft Word).
+• Dokumenti duhet të përmbajë këto kapituj minimale:
+1. Përmbledhje Ekzekutive (Abstract)
+2. Qëllimi dhe objektivat e projektit
+3. Analiza e kërkesave funksionale dhe jofunksionale
+4. Projektimi i sistemit (arkitektura, diagramet, modelet e të dhënave)
+5. Përshkrimi i implementimit (teknologjitë, mjetet dhe komponentët)
+6. Testimi dhe rezultatet
+7. Përfundime dhe rekomandime
+8. Referencat dhe burimet e përdorura
+9. Shtojcat (nëse ka) – p.sh. fragmente kodi, skema, ose pamje nga ndërfaqet.
+• Raporti duhet të jetë:
+o Me strukture akademike dhe të përmbajë faqe titulli, tabelë përmbajtjeje dhe
+numerim faqesh.
+o Me gjuhë profesionale dhe teknike, pa gabime drejtshkrimore.
+• Implementimi / Zhvillimi i Projektit:
+• Kodi burimor, skriptet, konfigurimet dhe dokumentet shtesë teknike duhet të
+vendosen në një dosje të vetme dhe të kompresohen në një nga formatet e mëposhtme:
+o .zip
+o .rar
+• Emërtimi i skedarëve duhet të jetë në këtë format:
+o EmriMbiemri_Projekti_SPDD.zip
+ose
+o GrupiX_Projekti_SPDD.rar (nëse është projekt në grup).
+• Platforma e Dorëzimit:
+• Të gjitha materialet (raporti dhe arkiva e kodit) duhet të ngarkohen në platformën
+Moodle në seksionin përkatës të lëndës.
+• Dorëzimi duhet të bëhet konform datave të përcaktuara nga mësimdhënësi në Moodle.
+• Pas afatit të dorëzimit, sistemi nuk do të pranojë më ngarkesa, dhe projektet e
+dorëzuara me vonesë nuk do të vlerësohen.
+• Çdo dorëzim duhet të përfshijë:
+o Dokumentin .docx
+o Skedarin .zip / .rar
+o Një deklaratë origjinaliteti (në fund të raportit), ku studenti konfirmon se puna
+është e tij dhe nuk përmban plagjiaturë

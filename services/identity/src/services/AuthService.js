@@ -1,16 +1,60 @@
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { Perdoruesi, Profesionisti, Roli, RoliPerdoruesit, RefreshToken } = require('../models');
+const redisClient = require('../config/redis');
 
 class AuthService {
     /**
-     * Generate access and refresh tokens for a user
+     * Helper: Get cached user
      */
-    generateTokens(perdoruesi) {
+    async getUserFromCache(userId) {
+        if (!redisClient.isOpen) return null;
+        try {
+            const cachedUser = await redisClient.get(`user:${userId}`);
+            return cachedUser ? JSON.parse(cachedUser) : null;
+        } catch (error) {
+            console.error('Redis Get Error:', error);
+            return null;
+        }
+    }
+
+    /**
+     * Helper: Set user in cache (expires in 1 hour)
+     */
+    async setUserInCache(userId, data) {
+        if (!redisClient.isOpen) return;
+        try {
+            await redisClient.set(`user:${userId}`, JSON.stringify(data), {
+                EX: 3600 // 1 hour
+            });
+        } catch (error) {
+            console.error('Redis Set Error:', error);
+        }
+    }
+
+    /**
+     * Helper: Invalidate user cache
+     */
+    async invalidateUserCache(userId) {
+        if (!redisClient.isOpen) return;
+        try {
+            await redisClient.del(`user:${userId}`);
+        } catch (error) {
+            console.error('Redis Del Error:', error);
+        }
+    }
+
+    /**
+     * Generate access and refresh tokens for a user
+     * @param {Object} perdoruesi - User object
+     * @param {Array} roles - Array of role names (e.g., ['klient', 'admin'])
+     */
+    generateTokens(perdoruesi, roles = []) {
         const accessToken = jwt.sign(
             {
                 perdoruesi_id: perdoruesi.perdoruesi_id,
-                email: perdoruesi.email
+                email: perdoruesi.email,
+                roles: roles
             },
             process.env.JWT_SECRET,
             { expiresIn: process.env.JWT_EXPIRES_IN || '15m' }
@@ -76,13 +120,29 @@ class AuthService {
         // If registering as professional
         if (isProfessional) {
             await this.createProfessional(perdoruesi, bio);
+
+            // Assign professional role
+            const [profRole] = await Roli.findOrCreate({
+                where: { lloji: 'profesionist' },
+                defaults: { lloji: 'profesionist' }
+            });
+            await perdoruesi.addRolet(profRole);
         }
 
-        // Generate tokens
-        const tokens = this.generateTokens(perdoruesi);
+        // Fetch the user with roles to get role names
+        const userWithRoles = await Perdoruesi.findByPk(perdoruesi.perdoruesi_id, {
+            include: [{ model: Roli, as: 'rolet' }]
+        });
+        const roleNames = userWithRoles.rolet.map(r => r.lloji);
+
+        // Cache the new user profile
+        await this.setUserInCache(perdoruesi.perdoruesi_id, userWithRoles);
+
+        // Generate tokens with roles
+        const tokens = this.generateTokens(perdoruesi, roleNames);
         await this.saveRefreshToken(perdoruesi.perdoruesi_id, tokens.refreshToken);
 
-        return { perdoruesi, tokens, isProfessional };
+        return { perdoruesi: userWithRoles, tokens, isProfessional };
     }
 
     /**
@@ -119,7 +179,13 @@ class AuthService {
             throw error;
         }
 
-        const tokens = this.generateTokens(perdoruesi);
+        // Extract role names for JWT
+        const roleNames = perdoruesi.rolet.map(r => r.lloji);
+
+        // Update/Set Cache on login
+        await this.setUserInCache(perdoruesi.perdoruesi_id, perdoruesi);
+
+        const tokens = this.generateTokens(perdoruesi, roleNames);
         await this.saveRefreshToken(perdoruesi.perdoruesi_id, tokens.refreshToken);
 
         return { perdoruesi, tokens };
@@ -156,12 +222,19 @@ class AuthService {
             throw error;
         }
 
-        // Get user
-        const perdoruesi = await Perdoruesi.findByPk(decoded.perdoruesi_id);
+        // Try getting user from cache first
+        let perdoruesi = await this.getUserFromCache(decoded.perdoruesi_id);
+
         if (!perdoruesi) {
-            const error = new Error('Përdoruesi nuk u gjet');
-            error.status = 401;
-            throw error;
+            // DB fallback
+            perdoruesi = await Perdoruesi.findByPk(decoded.perdoruesi_id);
+            if (!perdoruesi) {
+                const error = new Error('Përdoruesi nuk u gjet');
+                error.status = 401;
+                throw error;
+            }
+            // Populate cache
+            await this.setUserInCache(decoded.perdoruesi_id, perdoruesi);
         }
 
         // Revoke old token
@@ -179,11 +252,81 @@ class AuthService {
      */
     async logout(refreshToken) {
         if (refreshToken) {
+            try {
+                const decoded = jwt.decode(refreshToken);
+                if (decoded && decoded.perdoruesi_id) {
+                    await this.invalidateUserCache(decoded.perdoruesi_id);
+                }
+            } catch (e) {
+                console.error('Error invalidating cache on logout', e);
+            }
+
             await RefreshToken.update(
                 { is_revoked: true },
                 { where: { token: refreshToken } }
             );
         }
+    }
+
+    /**
+     * Upgrade existing user to professional
+     */
+    async upgradeToProfessional(perdoruesiId, professionalData) {
+        const { bio } = professionalData;
+
+        const perdoruesi = await Perdoruesi.findByPk(perdoruesiId, {
+            include: [{ model: Roli, as: 'rolet' }]
+        });
+
+        if (!perdoruesi) {
+            const error = new Error('Përdoruesi nuk u gjet');
+            error.status = 404;
+            throw error;
+        }
+
+        // Check if already professional (by role)
+        const isProfessional = perdoruesi.rolet.some(r => r.lloji === 'profesionist');
+        if (isProfessional) {
+            const error = new Error('Përdoruesi është tashmë profesionist');
+            error.status = 400;
+            throw error;
+        }
+
+        // Check if professional record exists (in case of previous partial failure)
+        let profesionisti = await Profesionisti.findOne({ where: { perdoruesi_id: perdoruesiId } });
+
+        if (!profesionisti) {
+            // Create professional record if it doesn't exist
+            profesionisti = await this.createProfessional(perdoruesi, bio);
+        } else {
+            // Update bio if provided
+            if (bio) {
+                profesionisti.bio = bio;
+                await profesionisti.save();
+            }
+        }
+
+        // Add professional role
+        const [profRole] = await Roli.findOrCreate({
+            where: { lloji: 'profesionist' },
+            defaults: { lloji: 'profesionist' }
+        });
+        await perdoruesi.addRolet(profRole);
+
+        // Refresh user with new roles
+        const updatedUser = await Perdoruesi.findByPk(perdoruesiId, {
+            include: [{ model: Roli, as: 'rolet' }]
+        });
+        const roleNames = updatedUser.rolet.map(r => r.lloji);
+
+        // Invalidate old cache and set new
+        await this.setUserInCache(perdoruesiId, updatedUser);
+
+        // Generate new tokens
+        const tokens = this.generateTokens(updatedUser, roleNames);
+        await this.saveRefreshToken(updatedUser.perdoruesi_id, tokens.refreshToken);
+
+        return { perdoruesi: updatedUser, profesionisti, tokens };
     }
 }
 
