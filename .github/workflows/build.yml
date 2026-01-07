@@ -23,12 +23,12 @@ jobs:
 
     - name: Build and Start Containers
       run: |
-        docker-compose up -d --build
+        docker compose up -d --build
         echo "Waiting for services to start..."
         sleep 30
 
     - name: Check Container Status
-      run: docker-compose ps
+      run: docker compose ps
 
     - name: Wait for Databases & Kafka
       run: |
@@ -70,8 +70,8 @@ jobs:
 
     - name: Show Service Logs on Failure
       if: failure()
-      run: docker-compose logs
+      run: docker compose logs
 
     - name: Stop Containers
       if: always()
-      run: docker-compose down
+      run: docker compose down
