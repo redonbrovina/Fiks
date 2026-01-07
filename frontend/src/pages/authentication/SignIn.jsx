@@ -1,32 +1,52 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import fiksLogo from '../../assets/images/fiks.png';
+import { authApi, tokenStorage } from '../../services/api';
 
 const SignIn = () => {
+    const navigate = useNavigate();
     const [formData, setFormData] = useState({
         email: '',
         fjalekalimi: ''
     });
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [apiError, setApiError] = useState('');
 
     const handleChange = (e) => {
         setFormData({
             ...formData,
             [e.target.name]: e.target.value
         });
+        // Clear error when user starts typing
+        if (apiError) setApiError('');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
+        setApiError('');
 
-        // TODO: Connect to Identity service API
-        console.log('Login attempt:', formData);
+        try {
+            const result = await authApi.login({
+                email: formData.email.trim().toLowerCase(),
+                fjalekalimi: formData.fjalekalimi
+            });
 
-        setTimeout(() => {
+            // Store tokens
+            tokenStorage.setTokens(result.accessToken, result.refreshToken);
+
+            // Redirect to dashboard
+            navigate('/dashboard');
+        } catch (error) {
+            if (error.status === 401) {
+                setApiError('Email ose fjalëkalimi i gabuar');
+            } else {
+                setApiError(error.message || 'Dicka shkoi keq. Ju lutem provoni përsëri.');
+            }
+        } finally {
             setIsLoading(false);
-        }, 1500);
+        }
     };
 
     return (
@@ -72,6 +92,13 @@ const SignIn = () => {
                     {/* Sign In Card */}
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-xl shadow-gray-200/50 border border-gray-100">
                         <form onSubmit={handleSubmit} className="space-y-6">
+                            {/* API Error Message */}
+                            {apiError && (
+                                <div className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-600 text-sm font-medium text-center">
+                                    {apiError}
+                                </div>
+                            )}
+
                             {/* Email Field */}
                             <div className="space-y-2">
                                 <label htmlFor="email" className="block text-sm font-bold text-[#444444] ml-1">

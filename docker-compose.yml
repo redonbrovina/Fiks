@@ -217,6 +217,20 @@ services:
     depends_on:
       - kafka
 
+  # pgAdmin for Database GUI
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - identity-db
+      - catalog-db
+      - booking-db
+      - feedback-db
+
 volumes:
   identity-db-data:
   catalog-db-data:
