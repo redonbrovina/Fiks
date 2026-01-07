@@ -19,7 +19,8 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'booking' });
 });
 
-// TODO: Add routes here when implementing this service
+const bookingRoutes = require('./routes/bookingRoutes');
+app.use('/api/bookings', bookingRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
