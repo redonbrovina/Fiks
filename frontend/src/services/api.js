@@ -183,3 +183,48 @@ export const authApi = {
 export const qytetiApi = {
     getAll: () => fetchApi('/api/qytetet'),
 };
+
+/**
+ * Catalog API - Profile Management
+ */
+export const catalogApi = {
+    // Profile methods
+    getProfile: (profesionistiId) => fetchApi(`/api/v1/catalog/profile/${profesionistiId}`),
+    createProfile: (profileData) => fetchApi('/api/v1/catalog/profile', {
+        method: 'POST',
+        body: profileData,
+    }),
+    updateProfile: (profesionistiId, profileData) => fetchApi(`/api/v1/catalog/profile/${profesionistiId}`, {
+        method: 'PUT',
+        body: profileData,
+    }),
+    deleteProfile: (profesionistiId) => fetchApi(`/api/v1/catalog/profile/${profesionistiId}`, {
+        method: 'DELETE',
+    }),
+    uploadProfileImage: (profesionistiId, imageFile) => {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        
+        return fetchApi(`/api/v1/catalog/profile/${profesionistiId}/upload-image`, {
+            method: 'POST',
+            headers: {}, // Let browser set Content-Type for FormData
+            body: formData,
+        });
+    },
+
+    // Services methods
+    getProfessionalServices: (profesionistiId) => fetchApi(`/api/v1/catalog/professional/${profesionistiId}/services`),
+    getService: (serviceId) => fetchApi(`/api/v1/catalog/services/${serviceId}`),
+    createService: (serviceData) => fetchApi('/api/v1/catalog/services', {
+        method: 'POST',
+        body: serviceData,
+    }),
+    updateService: (serviceId, serviceData) => fetchApi(`/api/v1/catalog/services/${serviceId}`, {
+        method: 'PUT',
+        body: serviceData,
+    }),
+    deleteService: (serviceId) => fetchApi(`/api/v1/catalog/services/${serviceId}`, {
+        method: 'DELETE',
+    }),
+    getCategories: () => fetchApi('/api/v1/catalog/categories'),
+};

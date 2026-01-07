@@ -1,0 +1,231 @@
+const { Sherbimi, Profili, Kategoria } = require('../models');
+const { validationResult } = require('express-validator');
+
+// Get all services for a professional
+const getProfessionalServices = async (req, res) => {
+    try {
+        const { profesionistiId } = req.params;
+        
+        const services = await Sherbimi.findAll({
+            where: { profili_id: profesionistiId },
+            include: [
+                {
+                    model: Kategoria,
+                    as: 'kategoria',
+                    attributes: ['kategoria_id', 'lloji_kategorise']
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        res.json(services);
+    } catch (error) {
+        console.error('Error fetching professional services:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Get single service by ID
+const getService = async (req, res) => {
+    try {
+        const { serviceId } = req.params;
+        
+        const service = await Sherbimi.findOne({
+            where: { sherbimi_id: serviceId },
+            include: [
+                {
+                    model: Profili,
+                    as: 'profili',
+                    attributes: ['profili_id', 'emri', 'email', 'nr_telefonit', 'imazh', 'rating']
+                },
+                {
+                    model: Kategoria,
+                    as: 'kategoria',
+                    attributes: ['kategoria_id', 'lloji_kategorise']
+                }
+            ]
+        });
+
+        if (!service) {
+            return res.status(404).json({ error: { message: 'Service not found' } });
+        }
+
+        res.json(service);
+    } catch (error) {
+        console.error('Error fetching service:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Create new service
+const createService = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
+        }
+
+        const { titulli, pershkrimi, kategoria_id, cmimi, koha_punes, profili_id } = req.body;
+
+        // Verify that the profile exists and belongs to the authenticated user
+        const profile = await Profili.findOne({
+            where: { profili_id, profesionisti_id: req.user.userId }
+        });
+
+        if (!profile) {
+            return res.status(404).json({ error: { message: 'Profile not found or access denied' } });
+        }
+
+        const service = await Sherbimi.create({
+            titulli,
+            pershkrimi,
+            kategoria_id,
+            cmimi,
+            koha_punes,
+            profili_id
+        });
+
+        // Fetch the created service with associations
+        const createdService = await Sherbimi.findOne({
+            where: { sherbimi_id: service.sherbimi_id },
+            include: [
+                {
+                    model: Kategoria,
+                    as: 'kategoria',
+                    attributes: ['kategoria_id', 'lloji_kategorise']
+                }
+            ]
+        });
+
+        res.status(201).json(createdService);
+    } catch (error) {
+        console.error('Error creating service:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Update service
+const updateService = async (req, res) => {
+    try {
+        const errors = validationResult(req);
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
+        }
+
+        const { serviceId } = req.params;
+        const { titulli, pershkrimi, kategoria_id, cmimi, koha_punes } = req.body;
+
+        const service = await Sherbimi.findOne({
+            where: { sherbimi_id: serviceId },
+            include: [
+                {
+                    model: Profili,
+                    as: 'profili',
+                    attributes: ['profili_id', 'profesionisti_id']
+                }
+            ]
+        });
+
+        if (!service) {
+            return res.status(404).json({ error: { message: 'Service not found' } });
+        }
+
+        // Check if the service belongs to the authenticated user
+        if (service.profili.profesionisti_id !== req.user.userId) {
+            return res.status(403).json({ error: { message: 'Access denied: You can only update your own services' } });
+        }
+
+        // Update service fields
+        const updateData = {};
+        if (titulli !== undefined) updateData.titulli = titulli;
+        if (pershkrimi !== undefined) updateData.pershkrimi = pershkrimi;
+        if (kategoria_id !== undefined) updateData.kategoria_id = kategoria_id;
+        if (cmimi !== undefined) updateData.cmimi = cmimi;
+        if (koha_punes !== undefined) updateData.koha_punes = koha_punes;
+
+        await service.update(updateData);
+
+        // Fetch updated service with associations
+        const updatedService = await Sherbimi.findOne({
+            where: { sherbimi_id: serviceId },
+            include: [
+                {
+                    model: Kategoria,
+                    as: 'kategoria',
+                    attributes: ['kategoria_id', 'lloji_kategorise']
+                }
+            ]
+        });
+
+        res.json(updatedService);
+    } catch (error) {
+        console.error('Error updating service:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Delete service
+const deleteService = async (req, res) => {
+    try {
+        const { serviceId } = req.params;
+
+        const service = await Sherbimi.findOne({
+            where: { sherbimi_id: serviceId },
+            include: [
+                {
+                    model: Profili,
+                    as: 'profili',
+                    attributes: ['profili_id', 'profesionisti_id']
+                }
+            ]
+        });
+
+        if (!service) {
+            return res.status(404).json({ error: { message: 'Service not found' } });
+        }
+
+        // Check if the service belongs to the authenticated user
+        if (service.profili.profesionisti_id !== req.user.userId) {
+            return res.status(403).json({ error: { message: 'Access denied: You can only delete your own services' } });
+        }
+
+        await service.destroy();
+
+        res.json({ message: 'Service deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting service:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Get all categories
+const getCategories = async (req, res) => {
+    try {
+        const categories = await Kategoria.findAll({
+            include: [
+                {
+                    model: Kategoria,
+                    as: 'nenKategorite',
+                    attributes: ['kategoria_id', 'lloji_kategorise']
+                }
+            ],
+            where: {
+                kategoria_parent_id: null
+            }
+        });
+
+        res.json(categories);
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+module.exports = {
+    getProfessionalServices,
+    getService,
+    createService,
+    updateService,
+    deleteService,
+    getCategories
+};

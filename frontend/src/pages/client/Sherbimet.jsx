@@ -1,4 +1,7 @@
 
+import perdoruesi from './images/perdoruesi.jpg';
+import profesionisti from './images/profesionisti.jpg';
+
 export default function Sherbimet() {
 
     const text_map = {
@@ -17,14 +20,14 @@ export default function Sherbimet() {
                     <div className="grid grid-cols-2 md:grid-cols-1 gap-6 md:gap-8 md:w-3/4 md:mx-auto">
                         <div className="bg-white rounded-lg p-6 flex flex-col items-center">
                             <div className="w-full h-44 bg-[#D9D9D9] rounded flex items-center justify-center mb-4">
-                                <span className="text-gray-500">Placeholder Image</span>
+                                <img src={perdoruesi} alt="Perdoruesi" className="w-full h-full object-cover rounded" />
                             </div>
                             <p className="font-semibold">Perdoruesi</p>
                         </div>
 
                         <div className="bg-white rounded-lg p-6 flex flex-col items-center">
                             <div className="w-full h-44 bg-[#D9D9D9] rounded flex items-center justify-center mb-4">
-                                <span className="text-gray-500">Placeholder Image</span>
+                                <img src={profesionisti} alt="Profesionistet" className="w-full h-full object-cover rounded" />
                             </div>
                             <p className="font-semibold">Profesionistet</p>
                         </div>
@@ -58,7 +61,7 @@ export default function Sherbimet() {
                     <div className="grid grid-cols-2 md:grid-cols-2 gap-8 items-start">
                         <div className="relative">
                             <div className="w-full h-48 bg-[#D9D9D9] rounded-lg flex items-center justify-center">
-                                <span className="text-gray-500">Placeholder image</span>
+                                <img src={perdoruesi} alt="Perdoruesi" className="w-full h-full object-cover rounded-lg" />
                             </div>
                         </div>
                         <div>
@@ -76,7 +79,7 @@ export default function Sherbimet() {
                             <p className="text-base leading-7">Për profesionistët: informacion rreth ofruesve të shërbimeve, përfitimeve dhe mënyrës se si të bashkëpunoni me ne. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero.</p>
                         </div>
                         <div className="w-full h-48 bg-[#D9D9D9] rounded-lg flex items-center justify-center text-[#333]">
-                            <span>Placeholder Image</span>
+                            <img src={profesionisti} alt="Profesionisti" className="w-full h-full object-cover rounded-lg" />
                         </div>
                     </div>
                 </div>

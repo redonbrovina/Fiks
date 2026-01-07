@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const routes = require('./routes');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -14,12 +15,16 @@ app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
 
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'catalog' });
 });
 
-// TODO: Add routes here when implementing this service
+// API Routes
+app.use(routes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

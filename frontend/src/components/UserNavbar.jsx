@@ -27,7 +27,6 @@ export default function UserNavbar() {
                 <div className="hidden md:flex items-center gap-6">
                     <Link to="/dashboard" className="text-sm font-bold text-[#C00F0C]">Dashboard</Link>
                     <Link to="/bookings" className="text-sm font-bold text-[#444444]/60 hover:text-[#C00F0C] transition-colors">Rezervimet</Link>
-                    <Link to="/profile" className="text-sm font-bold text-[#444444]/60 hover:text-[#C00F0C] transition-colors">Profili</Link>
                 </div>
             </div>
 
