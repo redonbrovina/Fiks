@@ -1,22 +1,25 @@
 import { useState } from 'react';
 
 /**
- * Reusable Admin Table Component
+ * Reusable Admin Table Component with Pagination
  * @param {Object} props
  * @param {Array} props.columns - Array of column definitions { key, label, render? }
  * @param {Array} props.data - Array of row data objects
  * @param {Function} props.onEdit - Optional edit handler (row) => void
  * @param {Function} props.onDelete - Optional delete handler (row) => void
  * @param {string} props.searchPlaceholder - Placeholder text for search input
+ * @param {number} props.pageSize - Items per page (default 10)
  */
 export default function AdminTable({
     columns = [],
     data = [],
     onEdit,
     onDelete,
-    searchPlaceholder = "Kërko..."
+    searchPlaceholder = "Kërko...",
+    pageSize = 10
 }) {
     const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
     // Filter data based on search term
     const filteredData = data.filter(row =>
@@ -28,6 +31,18 @@ export default function AdminTable({
             return false;
         })
     );
+
+    // Pagination calculations
+    const totalPages = Math.ceil(filteredData.length / pageSize);
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = startIndex + pageSize;
+    const paginatedData = filteredData.slice(startIndex, endIndex);
+
+    // Reset to page 1 when search changes
+    const handleSearch = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className="bg-[#3a3a3a] rounded-[2rem] p-6 shadow-lg border border-white/5">
@@ -47,7 +62,7 @@ export default function AdminTable({
                         type="text"
                         placeholder={searchPlaceholder}
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearch}
                         className="w-full pl-12 pr-4 py-3 bg-[#2d2d2d] border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-[#C00F0C]/50 transition-all duration-300"
                     />
                 </div>
@@ -74,7 +89,7 @@ export default function AdminTable({
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredData.length === 0 ? (
+                        {paginatedData.length === 0 ? (
                             <tr>
                                 <td
                                     colSpan={columns.length + (onEdit || onDelete ? 1 : 0)}
@@ -84,9 +99,9 @@ export default function AdminTable({
                                 </td>
                             </tr>
                         ) : (
-                            filteredData.map((row, rowIndex) => (
+                            paginatedData.map((row, rowIndex) => (
                                 <tr
-                                    key={row.id || rowIndex}
+                                    key={row.id || row.perdoruesi_id || rowIndex}
                                     className="border-b border-white/5 hover:bg-white/5 transition-colors duration-200"
                                 >
                                     {columns.map((col) => (
@@ -129,12 +144,63 @@ export default function AdminTable({
                 </table>
             </div>
 
-            {/* Footer with count */}
+            {/* Footer with Pagination */}
             <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
                 <span className="text-xs text-white/40">
-                    Duke shfaqur {filteredData.length} nga {data.length} rezultate
+                    Duke shfaqur {startIndex + 1}-{Math.min(endIndex, filteredData.length)} nga {filteredData.length} rezultate
                 </span>
+
+                {totalPages > 1 && (
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1}
+                            className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            title="Faqja e parë"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                            disabled={currentPage === 1}
+                            className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            title="Faqja paraprake"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                        </button>
+
+                        <span className="px-3 py-1 text-sm text-white/80">
+                            {currentPage} / {totalPages}
+                        </span>
+
+                        <button
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                            disabled={currentPage === totalPages}
+                            className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            title="Faqja tjetër"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                        <button
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages}
+                            className="p-2 text-white/60 hover:text-white hover:bg-white/10 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+                            title="Faqja e fundit"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
+

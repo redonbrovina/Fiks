@@ -1,0 +1,681 @@
+{
+    "id": null,
+    "uid": "fiks-overview",
+    "title": "Fiks Platform Overview",
+    "tags": [
+        "microservices",
+        "fiks"
+    ],
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "version": 2,
+    "refresh": "30s",
+    "time": {
+        "from": "now-1h",
+        "to": "now"
+    },
+    "panels": [
+        {
+            "id": 100,
+            "type": "row",
+            "title": "📊 System Performance",
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 0
+            },
+            "collapsed": false
+        },
+        {
+            "id": 1,
+            "type": "stat",
+            "title": "Services Up",
+            "gridPos": {
+                "h": 5,
+                "w": 4,
+                "x": 0,
+                "y": 1
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "count(up{job=~\".*-service\"} == 1)",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "graphMode": "none",
+                "colorMode": "value",
+                "textMode": "value"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "red"
+                            },
+                            {
+                                "value": 2,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 4,
+                                "color": "green"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 3,
+            "type": "gauge",
+            "title": "CPU Usage",
+            "gridPos": {
+                "h": 5,
+                "w": 4,
+                "x": 4,
+                "y": 1
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "avg(rate(process_cpu_seconds_total[1m]) * 100)",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "percent",
+                    "min": 0,
+                    "max": 100,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            },
+                            {
+                                "value": 60,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 80,
+                                "color": "red"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 5,
+            "type": "stat",
+            "title": "Uptime",
+            "gridPos": {
+                "h": 5,
+                "w": 4,
+                "x": 8,
+                "y": 1
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "max(time() - process_start_time_seconds{job=~\".*-service\"})",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "s"
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 2,
+            "type": "timeseries",
+            "title": "Memory Usage by Service",
+            "gridPos": {
+                "h": 5,
+                "w": 12,
+                "x": 12,
+                "y": 1
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "process_resident_memory_bytes / 1024 / 1024",
+                    "legendFormat": "{{job}}",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "unit": "decmbytes"
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 200,
+            "type": "row",
+            "title": "📈 Business Metrics",
+            "gridPos": {
+                "h": 1,
+                "w": 24,
+                "x": 0,
+                "y": 6
+            },
+            "collapsed": false
+        },
+        {
+            "id": 10,
+            "type": "stat",
+            "title": "Total Users",
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 0,
+                "y": 7
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_users_total",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "blue"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 11,
+            "type": "stat",
+            "title": "Professionals",
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 4,
+                "y": 7
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_professionals_total",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "purple"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 12,
+            "type": "stat",
+            "title": "Total Bookings",
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 8,
+                "y": 7
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_total",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "green"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 13,
+            "type": "stat",
+            "title": "Services Offered",
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 12,
+                "y": 7
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_services_total",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "graphMode": "area",
+                "colorMode": "value",
+                "textMode": "value"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "orange"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 14,
+            "type": "gauge",
+            "title": "Avg Rating",
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 16,
+                "y": 7
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_average_rating",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "showThresholdLabels": false,
+                "showThresholdMarkers": true
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "min": 0,
+                    "max": 5,
+                    "decimals": 1,
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "red"
+                            },
+                            {
+                                "value": 2.5,
+                                "color": "yellow"
+                            },
+                            {
+                                "value": 4,
+                                "color": "green"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 15,
+            "type": "stat",
+            "title": "Pending",
+            "gridPos": {
+                "h": 4,
+                "w": 4,
+                "x": 20,
+                "y": 7
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_pending",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "graphMode": "none",
+                "colorMode": "value",
+                "textMode": "value"
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "thresholds"
+                    },
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "value": null,
+                                "color": "yellow"
+                            }
+                        ]
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 20,
+            "type": "timeseries",
+            "title": "Users Over Time",
+            "gridPos": {
+                "h": 7,
+                "w": 8,
+                "x": 0,
+                "y": 11
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_users_total",
+                    "legendFormat": "Total Users",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "tooltip": {
+                    "mode": "single"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 21,
+            "type": "timeseries",
+            "title": "Professionals Over Time",
+            "gridPos": {
+                "h": 7,
+                "w": 8,
+                "x": 8,
+                "y": 11
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_professionals_total",
+                    "legendFormat": "Professionals",
+                    "refId": "A"
+                }
+            ],
+            "options": {
+                "tooltip": {
+                    "mode": "single"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 22,
+            "type": "timeseries",
+            "title": "Bookings Over Time",
+            "gridPos": {
+                "h": 7,
+                "w": 8,
+                "x": 16,
+                "y": 11
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_total",
+                    "legendFormat": "Total",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_completed",
+                    "legendFormat": "Completed",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_pending",
+                    "legendFormat": "Pending",
+                    "refId": "C"
+                }
+            ],
+            "options": {
+                "tooltip": {
+                    "mode": "multi"
+                },
+                "legend": {
+                    "displayMode": "list",
+                    "placement": "bottom"
+                }
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 30,
+            "type": "bargauge",
+            "title": "This Week's Activity",
+            "gridPos": {
+                "h": 5,
+                "w": 12,
+                "x": 0,
+                "y": 18
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_users_registered_week",
+                    "legendFormat": "New Users",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_profiles_week",
+                    "legendFormat": "New Professionals",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_week",
+                    "legendFormat": "New Bookings",
+                    "refId": "C"
+                }
+            ],
+            "options": {
+                "displayMode": "gradient",
+                "orientation": "horizontal",
+                "showUnfilled": true
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    }
+                },
+                "overrides": []
+            }
+        },
+        {
+            "id": 31,
+            "type": "bargauge",
+            "title": "This Month's Activity",
+            "gridPos": {
+                "h": 5,
+                "w": 12,
+                "x": 12,
+                "y": 18
+            },
+            "targets": [
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_users_registered_month",
+                    "legendFormat": "New Users",
+                    "refId": "A"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_profiles_month",
+                    "legendFormat": "New Professionals",
+                    "refId": "B"
+                },
+                {
+                    "datasource": {
+                        "type": "prometheus"
+                    },
+                    "expr": "fiks_bookings_month",
+                    "legendFormat": "New Bookings",
+                    "refId": "C"
+                }
+            ],
+            "options": {
+                "displayMode": "gradient",
+                "orientation": "horizontal",
+                "showUnfilled": true
+            },
+            "fieldConfig": {
+                "defaults": {
+                    "color": {
+                        "mode": "palette-classic"
+                    }
+                },
+                "overrides": []
+            }
+        }
+    ]
+}

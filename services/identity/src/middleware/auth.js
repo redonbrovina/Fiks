@@ -17,7 +17,8 @@ const authMiddleware = (req, res, next) => {
 
         req.user = {
             perdoruesi_id: decoded.perdoruesi_id,
-            email: decoded.email
+            email: decoded.email,
+            roles: decoded.roles || []
         };
 
         next();
@@ -29,4 +30,16 @@ const authMiddleware = (req, res, next) => {
     }
 };
 
+/**
+ * Admin Authorization Middleware
+ * Must be used after authMiddleware
+ */
+const adminMiddleware = (req, res, next) => {
+    if (!req.user || !req.user.roles.includes('admin')) {
+        return res.status(403).json({ error: { message: 'Vetëm adminët kanë qasje' } });
+    }
+    next();
+};
+
 module.exports = authMiddleware;
+module.exports.adminMiddleware = adminMiddleware;

@@ -4,6 +4,51 @@ const KafkaProducer = require('../services/KafkaProducer');
 
 class PerdoruesiController {
     /**
+     * GET /api/users (Admin only)
+     */
+    async getAllUsers(req, res, next) {
+        try {
+            const users = await PerdoruesiService.getAll();
+            res.json(users.map(u => u.toJSON()));
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * DELETE /api/users/:id (Admin only)
+     */
+    async deleteUser(req, res, next) {
+        try {
+            await PerdoruesiService.delete(req.params.id);
+            res.json({ message: 'Përdoruesi u fshi me sukses' });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * PUT /api/users/:id (Admin only)
+     */
+    async updateUser(req, res, next) {
+        try {
+            const { emri, adresa, nr_telefonit, qyteti_id } = req.body;
+            const perdoruesi = await PerdoruesiService.update(req.params.id, {
+                emri,
+                adresa,
+                nr_telefonit,
+                qyteti_id
+            });
+            res.json({
+                message: 'Përdoruesi u përditësua me sukses',
+                perdoruesi: perdoruesi.toJSON()
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
      * GET /api/users/me
      */
     async getMe(req, res, next) {

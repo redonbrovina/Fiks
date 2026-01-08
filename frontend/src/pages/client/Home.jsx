@@ -20,39 +20,35 @@ export default function Home() {
     }
 
     const reviews = [
-    { quote: "Fantastik! Jeni me te miret!", author: "Faton Gashi" },
-    { quote: "Fiks me ka shpetuar jeten!", author: "Pranvera Misini" },
-    { quote: "Wow! Jeni te pabesueshem!", author: "Azem Jaha" },
-    { quote: "Fiks cka kam kerkuar!", author: "Faton Gashi" },
-  ];
+        { quote: "Fantastik! Jeni me te miret!", author: "Faton Gashi" },
+        { quote: "Fiks me ka shpetuar jeten!", author: "Pranvera Misini" },
+        { quote: "Wow! Jeni te pabesueshem!", author: "Azem Jaha" },
+        { quote: "Fiks cka kam kerkuar!", author: "Faton Gashi" },
+    ];
 
     return (
-        <>  
+        <>
             <div className="hero-section-container">
-                <img src={heroImg} alt="workshop image" className="hero-section-img"/>
-             <div className="hero-section">
+                <img src={heroImg} alt="workshop image" className="hero-section-img" />
+                <div className="hero-section">
                     <h1><span className="fiks">Fiks</span> c'ka te duhet</h1>
                     <p>Gjej profesionistët më të mirë për riparime dhe mbështetje IT në Kosovë.
-                         Shpejt, lehtë dhe me cilësi të garantuar.</p>
-                    <div className="search-bar">
-                        <input type="text" placeholder="Search..." />
-                        <button>Search</button>
-                    </div>
+                        Shpejt, lehtë dhe me cilësi të garantuar.</p>
                 </div>
             </div>
             <div className="sherbimet-section">
                 <h1>Sherbimet Tona</h1>
                 <p>Zgjidhje profesionale per cdo nevoje qe mund te keni...</p>
                 <div className="sherbimet-img-wrapper">
-                   <Img classNaming="sherbimet-img" imgSource={burma} description="Riparime te pergjithshme"/>
-                    <Img classNaming="sherbimet-img" imgSource={computer} description="IT Support"/>
-                    <Img classNaming="sherbimet-img" imgSource={elektriciann} description="Electrician"/>
-                    <Img classNaming="sherbimet-img" imgSource={hidraulik} description="Hidraulik"/>
-                    <Img classNaming="sherbimet-img" imgSource={shtepiaku} description="Mirembajtje shtepiake"/>
-                    <Img classNaming="sherbimet-img" imgSource={dado} description="Perkujdesje/Dado"/>
+                    <Img classNaming="sherbimet-img" imgSource={burma} description="Riparime te pergjithshme" />
+                    <Img classNaming="sherbimet-img" imgSource={computer} description="IT Support" />
+                    <Img classNaming="sherbimet-img" imgSource={elektriciann} description="Electrician" />
+                    <Img classNaming="sherbimet-img" imgSource={hidraulik} description="Hidraulik" />
+                    <Img classNaming="sherbimet-img" imgSource={shtepiaku} description="Mirembajtje shtepiake" />
+                    <Img classNaming="sherbimet-img" imgSource={dado} description="Perkujdesje/Dado" />
                 </div>
             </div>
-             <section className="bg-[#333333] py-16">
+            <section className="bg-[#333333] py-16">
                 <div className="max-w-[1200px] mx-auto px-4">
                     <h1 className="text-3xl font-bold text-white pb-6">Disa klikime nga zgjidhja</h1>
                     <div className="grid grid-cols-4 md:grid-cols-3 gap-6 mb-6 py-6">
@@ -73,23 +69,23 @@ export default function Home() {
                 </div>
             </section>
             <section className="px-[10%] py-16 bg-white">
-        <div className="mb-10">
-          <h2 className="text-3xl font-bold">Cfare thone klientet tane?</h2>
-          <p className="text-gray-400">Mijera kliente te kenaqur ne tere Kosoven</p>
-        </div>
+                <div className="mb-10">
+                    <h2 className="text-3xl font-bold">Cfare thone klientet tane?</h2>
+                    <p className="text-gray-400">Mijera kliente te kenaqur ne tere Kosoven</p>
+                </div>
 
-        {/* 2. The Gray Grid Box */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-8 bg-gray-200 rounded-md">
-          {reviews.map((review, index) => (
-            <TestimonialCard 
-              key={index}
-              quote={review.quote}
-              author={review.author}
-              image={review.image} // Optional: add image paths to the array later
-            />
-          ))}
-        </div>
-      </section>
+                {/* 2. The Gray Grid Box */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 p-8 bg-gray-200 rounded-md">
+                    {reviews.map((review, index) => (
+                        <TestimonialCard
+                            key={index}
+                            quote={review.quote}
+                            author={review.author}
+                            image={review.image} // Optional: add image paths to the array later
+                        />
+                    ))}
+                </div>
+            </section>
         </>
     )
 }
