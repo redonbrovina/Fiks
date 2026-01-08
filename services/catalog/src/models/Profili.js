@@ -29,7 +29,7 @@ module.exports = (sequelize) => {
             allowNull: true
         },
         profesionisti_id: {
-            type: DataTypes.INTEGER,
+            type: DataTypes.UUID,
             allowNull: false,
             unique: true
         },

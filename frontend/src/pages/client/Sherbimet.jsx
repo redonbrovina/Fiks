@@ -1,8 +1,10 @@
 
+import { useNavigate } from 'react-router-dom';
 import perdoruesi from './images/perdoruesi.jpg';
 import profesionisti from './images/profesionisti.jpg';
 
 export default function Sherbimet() {
+    const navigate = useNavigate();
 
     const text_map = {
         "1. Kerko Sherbimin": "Përshkruaj problemin ose shërbimin që të duhet dhe gjej profesionistët e duhur.",
@@ -65,7 +67,7 @@ export default function Sherbimet() {
                             </div>
                         </div>
                         <div>
-                            <p className="text-base leading-7 text-[#000000]">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec sit amet arcu sed quam faucibus sodales. Sed vestibulum, lorem vel pharetra vehicula, tortor sapien aliquet augue, et pulvinar ligula arcu quis dolor.</p>
+                            <p className="text-base leading-7 text-[#000000]">"Gjeni ekspertin e duhur për çdo nevojë të shtëpisë ose biznesit tuaj. Nga riparimet elektrike dhe hidraulike deri te shërbimet e kujdesit personal, platforma jonë ju lidh me profesionistë të verifikuar në kohë reale. Thjesht zgjidhni shërbimin, krahasoni vlerësimet dhe rezervoni me një klik."</p>
                         </div>
                     </div>
                 </div>
@@ -76,7 +78,7 @@ export default function Sherbimet() {
                     <h2 className="text-3xl font-bold mb-6">Profesionisti</h2>
                     <div className="grid grid-cols-2 md:grid-cols-2 gap-8 items-start">
                         <div>
-                            <p className="text-base leading-7">Për profesionistët: informacion rreth ofruesve të shërbimeve, përfitimeve dhe mënyrës se si të bashkëpunoni me ne. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero.</p>
+                            <p className="text-base leading-7">"Vini aftësitë tuaja në punë dhe rritni bazën tuaj të klientëve. Duke u bërë pjesë e tregut tonë, ju fitoni akses te qindra përdorues që kërkojnë shërbimet tuaja çdo ditë. Listoni shërbimet tuaja, ndërtoni një profil besueshëm përmes vlerësimeve dhe menaxhoni kërkesat tuaja me lehtësi."</p>
                         </div>
                         <div className="w-full h-48 bg-[#D9D9D9] rounded-lg flex items-center justify-center text-[#333]">
                             <img src={profesionisti} alt="Profesionisti" className="w-full h-full object-cover rounded-lg" />
@@ -88,7 +90,12 @@ export default function Sherbimet() {
             <section className="bg-white py-12">
                 <div className="flex justify-center items-center flex-col gap-6 p-10">
                     <p className="text-3xl font-bold text-[#000000]">Jeni te interesuar?</p>
-                    <button className="btn-style-dark w-40 font-bold">Fillo Tani</button>
+                    <button 
+                        onClick={() => navigate('/signup')}
+                        className="btn-style-dark w-40 font-bold hover:bg-[#a00d0a] hover:scale-105 transition-all duration-200 transform"
+                    >
+                        Fillo Tani
+                    </button>
                 </div>
             </section>
         </>
