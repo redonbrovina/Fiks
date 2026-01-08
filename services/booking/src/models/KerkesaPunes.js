@@ -24,7 +24,7 @@ module.exports = (sequelize) => {
             defaultValue: DataTypes.NOW
         },
         perdoruesi_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: false
         },
         kategoria_id: {

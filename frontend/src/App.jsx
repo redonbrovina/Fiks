@@ -14,6 +14,7 @@ import ClientDashboard from './pages/logged_in/perdoruesi/ClientDashboard'
 import AdminDashboard from './pages/logged_in/admin/AdminDashboard'
 import UserManagement from './pages/logged_in/admin/UserManagement'
 import ProfessionalsManagement from './pages/logged_in/admin/ProfessionalsManagement'
+import AdminBookings from './pages/logged_in/admin/AdminBookings'
 import ProfessionalDashboard from './pages/logged_in/perdoruesi/ProfessionalDashboard'
 import Marketplace from './pages/logged_in/perdoruesi/Marketplace'
 import AddService from './pages/logged_in/perdoruesi/AddService'
@@ -53,6 +54,7 @@ function App() {
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/professionals" element={<ProfessionalsManagement />} />
+            <Route path="/admin/bookings" element={<AdminBookings />} />
           </Route>
         </Routes>
       </BrowserRouter>
