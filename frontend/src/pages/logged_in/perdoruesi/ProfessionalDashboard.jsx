@@ -52,6 +52,13 @@ export default function ProfessionalDashboard() {
                     <p className="text-gray-500 font-medium text-center">Mirësevini, këtu mund të menaxhoni punën tuaj.</p>
                 </div>
 
+                <button
+                    onClick={() => navigate('/add-service')}
+                    className="px-5 py-2.5 bg-[#C00F0C] text-white font-bold rounded-xl shadow-lg shadow-red-200 hover:shadow-red-300 hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+                >
+                    Shto Shërbim (+)
+                </button>
+
             </div>
         </div>
     );
