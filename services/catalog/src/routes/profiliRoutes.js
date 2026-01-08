@@ -1,14 +1,17 @@
 const express = require('express');
 const { body } = require('express-validator');
 const {
+    getAllProfiles,
     getProfile,
     updateProfile,
+    updateProfileById,
     createProfile,
     deleteProfile,
+    deleteProfileById,
     uploadProfileImage,
     serveUploads
 } = require('../controllers/profiliController');
-const { authenticateToken, authorizeProfileAccess } = require('../middleware/auth');
+const { authenticateToken, authorizeProfileAccess, adminAuth } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
 
 const router = express.Router();
@@ -24,10 +27,15 @@ const profileValidation = [
 const createProfileValidation = [
     body('emri').notEmpty().withMessage('Name is required').isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
     body('email').notEmpty().withMessage('Email is required').isEmail().withMessage('Please provide a valid email'),
-    body('profesionisti_id').notEmpty().withMessage('Professional ID is required').isUUID().withMessage('Professional ID must be a valid UUID'),
+    body('profesionisti_id').notEmpty().withMessage('Professional ID is required'),
     body('nr_telefonit').optional().isLength({ min: 9, max: 20 }).withMessage('Phone number must be between 9 and 20 characters'),
     body('imazh').optional().isURL().withMessage('Image must be a valid URL')
 ];
+
+// Admin routes (require admin role)
+router.get('/profiles', authenticateToken, adminAuth, getAllProfiles);
+router.put('/profiles/:id', authenticateToken, adminAuth, profileValidation, updateProfileById);
+router.delete('/profiles/:id', authenticateToken, adminAuth, deleteProfileById);
 
 // Routes
 // Public route for getting profile (can be accessed without authentication)

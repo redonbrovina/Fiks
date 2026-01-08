@@ -11,7 +11,13 @@ export const tokenStorage = {
     },
 
     setUser: (user) => {
-        localStorage.setItem('user', JSON.stringify(user));
+        // Only store minimal user data needed by the frontend
+        const minimalUser = {
+            perdoruesi_id: user.perdoruesi_id,
+            emri: user.emri,
+            roles: user.rolet?.map(r => r.lloji) || []
+        };
+        localStorage.setItem('user', JSON.stringify(minimalUser));
     },
 
     getAccessToken: () => localStorage.getItem('accessToken'),
@@ -24,7 +30,7 @@ export const tokenStorage = {
 
     getUserRoles: () => {
         const user = tokenStorage.getUser();
-        return user?.rolet?.map(r => r.lloji) || [];
+        return user?.roles || [];
     },
 
     hasRole: (role) => {
@@ -207,6 +213,30 @@ export const authApi = {
  */
 export const qytetiApi = {
     getAll: () => fetchApi('/api/qytetet'),
+};
+
+/**
+ * Admin API (requires admin role)
+ */
+export const adminApi = {
+    // Users (Identity)
+    getUsers: () => fetchApi('/api/users'),
+    updateUser: (id, userData) => fetchApi(`/api/users/${id}`, {
+        method: 'PUT',
+        body: userData,
+    }),
+    deleteUser: (id) => fetchApi(`/api/users/${id}`, {
+        method: 'DELETE',
+    }),
+    // Profiles/Professionals (Catalog)
+    getProfiles: () => fetchApi('/api/v1/catalog/profiles'),
+    updateProfile: (id, profileData) => fetchApi(`/api/v1/catalog/profiles/${id}`, {
+        method: 'PUT',
+        body: profileData,
+    }),
+    deleteProfile: (id) => fetchApi(`/api/v1/catalog/profiles/${id}`, {
+        method: 'DELETE',
+    }),
 };
 
 /**

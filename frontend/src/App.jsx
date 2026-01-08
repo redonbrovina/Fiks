@@ -3,7 +3,6 @@ import Layout from './components/Layout'
 import UserLayout from './components/UserLayout'
 import AdminLayout from './components/AdminLayout'
 import About from './pages/client/About'
-import Contact from './pages/client/Contact'
 import Home from './pages/client/Home'
 import Sherbimet from './pages/client/Sherbimet'
 import SignIn from './pages/authentication/SignIn'
@@ -33,10 +32,7 @@ function App() {
           {/* Client routes (Public) */}
           <Route element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/home" element={<Home />} />
             <Route path="/rreth-nesh" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/sherbimet" element={<Sherbimet />} />
           </Route>
 

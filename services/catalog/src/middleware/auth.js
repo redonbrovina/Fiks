@@ -13,7 +13,7 @@ const authenticateToken = (req, res, next) => {
         if (err) {
             return res.status(403).json({ error: { message: 'Invalid or expired token' } });
         }
-        
+
         req.user = user;
         next();
     });
@@ -31,7 +31,16 @@ const authorizeProfileAccess = (req, res, next) => {
     next();
 };
 
+// Admin authorization middleware
+const adminAuth = (req, res, next) => {
+    if (!req.user || !req.user.roles || !req.user.roles.includes('admin')) {
+        return res.status(403).json({ error: { message: 'Admin access required' } });
+    }
+    next();
+};
+
 module.exports = {
     authenticateToken,
-    authorizeProfileAccess
+    authorizeProfileAccess,
+    adminAuth
 };

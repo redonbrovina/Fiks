@@ -1,8 +1,62 @@
 global:
   scrape_interval: 15s
+  evaluation_interval: 15s
 
 scrape_configs:
+  # Docker container metrics
+  - job_name: 'docker'
+    static_configs:
+      - targets: ['host.docker.internal:9323']
+    metrics_path: '/metrics'
+
+  # Identity Service
   - job_name: 'identity-service'
     static_configs:
       - targets: ['identity:3001']
     metrics_path: '/metrics'
+
+  # Catalog Service
+  - job_name: 'catalog-service'
+    static_configs:
+      - targets: ['catalog:3002']
+    metrics_path: '/metrics'
+
+  # Booking Service
+  - job_name: 'booking-service'
+    static_configs:
+      - targets: ['booking:3003']
+    metrics_path: '/metrics'
+
+  # Feedback Service
+  - job_name: 'feedback-service'
+    static_configs:
+      - targets: ['feedback:3004']
+    metrics_path: '/metrics'
+
+  # PostgreSQL Databases
+  - job_name: 'postgres-identity'
+    static_configs:
+      - targets: ['identity-db:5432']
+
+  - job_name: 'postgres-catalog'
+    static_configs:
+      - targets: ['catalog-db:5432']
+
+  - job_name: 'postgres-booking'
+    static_configs:
+      - targets: ['booking-db:5432']
+
+  - job_name: 'postgres-feedback'
+    static_configs:
+      - targets: ['feedback-db:5432']
+
+  # Kafka
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka:9092']
+
+  # Redis
+  - job_name: 'redis'
+    static_configs:
+      - targets: ['redis:6379']
+

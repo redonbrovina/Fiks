@@ -23,7 +23,7 @@ export default function Bookings() {
             // Filter locally for now effectively showing only my requests if backend returned all
             // In a real scenario, backend should filter by user from token
             const user = tokenStorage.getUser();
-            const myBookings = data.filter(b => b.perdoruesi_id === user?.id);
+            const myBookings = data.filter(b => b.perdoruesi_id === user?.perdoruesi_id);
             setBookings(myBookings.length > 0 ? myBookings : data); // Fallback to all if filtering fails/no user (for demo)
         } catch (err) {
             setError('Failed to fetch bookings');

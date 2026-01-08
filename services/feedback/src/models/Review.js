@@ -21,15 +21,15 @@ module.exports = (sequelize) => {
             allowNull: true
         },
         termini_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: true
         },
         profesionisti_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: false
         },
         perdoruesi_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: false
         },
         koha_krijimit: {

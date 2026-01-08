@@ -2,6 +2,33 @@ const { Perdoruesi, Profesionisti, Qyteti, Roli } = require('../models');
 
 class PerdoruesiService {
     /**
+     * Get all users with related data (for admin)
+     */
+    async getAll() {
+        return Perdoruesi.findAll({
+            include: [
+                { model: Qyteti, as: 'qyteti' },
+                { model: Roli, as: 'rolet' }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+    }
+
+    /**
+     * Delete user by ID (for admin)
+     */
+    async delete(perdoruesiId) {
+        const perdoruesi = await Perdoruesi.findByPk(perdoruesiId);
+        if (!perdoruesi) {
+            const error = new Error('Përdoruesi nuk u gjet');
+            error.status = 404;
+            throw error;
+        }
+        await perdoruesi.destroy();
+        return true;
+    }
+
+    /**
      * Get user by ID with related data
      */
     async getById(perdoruesiId) {

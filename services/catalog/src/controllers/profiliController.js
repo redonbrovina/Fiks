@@ -1,12 +1,74 @@
-const { Profili } = require('../models');
+const { Profili, Sherbimi } = require('../models');
 const { validationResult } = require('express-validator');
 const path = require('path');
+
+// Get all profiles (Admin)
+const getAllProfiles = async (req, res) => {
+    try {
+        const profiles = await Profili.findAll({
+            include: [
+                { model: Sherbimi, as: 'sherbimet' }
+            ],
+            order: [['created_at', 'DESC']]
+        });
+        res.json(profiles);
+    } catch (error) {
+        console.error('Error fetching profiles:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Update profile by ID (Admin)
+const updateProfileById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { emri, email, nr_telefonit } = req.body;
+
+        const profile = await Profili.findByPk(id);
+
+        if (!profile) {
+            return res.status(404).json({ error: { message: 'Profile not found' } });
+        }
+
+        const updateData = {};
+        if (emri !== undefined) updateData.emri = emri;
+        if (email !== undefined) updateData.email = email;
+        if (nr_telefonit !== undefined) updateData.nr_telefonit = nr_telefonit;
+
+        await profile.update(updateData);
+
+        res.json({ message: 'Profile updated successfully', profile });
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
+
+// Delete profile by ID (Admin)
+const deleteProfileById = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const profile = await Profili.findByPk(id);
+
+        if (!profile) {
+            return res.status(404).json({ error: { message: 'Profile not found' } });
+        }
+
+        await profile.destroy();
+
+        res.json({ message: 'Profile deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting profile:', error);
+        res.status(500).json({ error: { message: 'Internal server error' } });
+    }
+};
 
 // Get profile by profesionisti_id
 const getProfile = async (req, res) => {
     try {
         const { profesionistiId } = req.params;
-        
+
         const profile = await Profili.findOne({
             where: { profesionisti_id: profesionistiId }
         });
@@ -134,7 +196,7 @@ const uploadProfileImage = async (req, res) => {
         const imagePath = `/uploads/profiles/${req.file.filename}`;
         await profile.update({ imazh: imagePath });
 
-        res.json({ 
+        res.json({
             message: 'Profile image uploaded successfully',
             imagePath: imagePath
         });
@@ -151,10 +213,13 @@ const serveUploads = (req, res) => {
 };
 
 module.exports = {
+    getAllProfiles,
     getProfile,
     updateProfile,
+    updateProfileById,
     createProfile,
     deleteProfile,
+    deleteProfileById,
     uploadProfileImage,
     serveUploads
 };

@@ -8,6 +8,7 @@ const { runSeeder } = require('./seeder');
 const client = require('prom-client');
 const redisClient = require('./config/redis');
 const KafkaProducer = require('./services/KafkaProducer');
+const { registerMetrics, updateBusinessMetrics } = require('./services/businessMetrics');
 
 // Import routes
 const authRoutes = require('./routes/auth');
@@ -20,6 +21,14 @@ const PORT = process.env.PORT || 3001;
 // Metrics Registry
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
+
+// Register business metrics
+registerMetrics(register);
+
+// Update business metrics every 30 seconds
+setInterval(() => {
+    updateBusinessMetrics();
+}, 30000);
 
 // Attach redis to req
 app.use((req, res, next) => {
@@ -38,8 +47,9 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'identity' });
 });
 
-// Metrics Endpoint
+// Metrics Endpoint - update metrics before responding
 app.get('/metrics', async (req, res) => {
+    await updateBusinessMetrics();
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
 });
@@ -80,6 +90,10 @@ const startServer = async () => {
             // Run seeders
             await runSeeder();
         }
+
+        // Start Kafka consumer
+        const KafkaConsumer = require('./services/KafkaConsumer');
+        await KafkaConsumer.connect();
 
         app.listen(PORT, () => {
             console.log(`[RUNNING] Identity service on port ${PORT}`);

@@ -7,6 +7,7 @@ const { sequelize } = require('./models');
 const routes = require('./routes');
 const KafkaConsumer = require('./services/KafkaConsumer');
 const { runSeeder } = require('./seeder');
+const { register, updateCatalogMetrics } = require('./services/businessMetrics');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -24,6 +25,18 @@ app.use('/uploads', express.static('uploads'));
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'catalog' });
 });
+
+// Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+    await updateCatalogMetrics();
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+});
+
+// Update metrics every 30 seconds
+setInterval(() => {
+    updateCatalogMetrics();
+}, 30000);
 
 // API Routes
 app.use(routes);

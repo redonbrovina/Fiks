@@ -69,6 +69,7 @@ services:
       - NODE_ENV=development
       - PORT=3002
       - DATABASE_URL=postgres://postgres:postgres@catalog-db:5432/catalog
+      - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
       - KAFKA_BROKERS=kafka:9092
     depends_on:
       catalog-db:
@@ -256,8 +257,13 @@ services:
       - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+      - GF_SECURITY_ALLOW_EMBEDDING=true
+      - GF_SERVER_ROOT_URL=http://localhost:3000
     volumes:
       - grafana-data:/var/lib/grafana
+      - ./infra/monitoring/grafana/provisioning:/etc/grafana/provisioning
     depends_on:
       - prometheus
 

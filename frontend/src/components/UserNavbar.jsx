@@ -40,7 +40,7 @@ export default function UserNavbar() {
                     Dil
                 </button>
                 <div className="w-10 h-10 bg-[#C00F0C]/5 rounded-full flex items-center justify-center border border-[#C00F0C]/10">
-                    <span className="text-[#C00F0C] font-bold text-sm">RB</span>
+                    <span className="text-[#C00F0C] font-bold text-sm">{tokenStorage.getUser().emri.charAt(0).toUpperCase()}</span>
                 </div>
             </div>
         </nav>
