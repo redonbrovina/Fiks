@@ -286,8 +286,8 @@ services:
   # ===========================================
   ml-pipeline:
     build:
-      context: ./data_engineering/ml_pipeline
-      dockerfile: Dockerfile
+      context: ./data_engineering
+      dockerfile: ml_pipeline/Dockerfile
     depends_on:
       - mongodb
       - identity

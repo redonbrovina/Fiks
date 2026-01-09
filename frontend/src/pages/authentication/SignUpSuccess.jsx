@@ -22,7 +22,7 @@ export default function SignUpSuccess() {
                 </h1>
 
                 <p className="text-gray-400 font-medium text-sm mb-8 leading-relaxed px-4">
-                    Faleminderit qe u bashkuat me Fiks. Tani mund te kyqeni ne llogarine tuaj dhe te filloni rrugetimin tuaj.
+                    Faleminderit qe u bashkuat me Fiks. Tani mund te kyçeni ne llogarine tuaj dhe te filloni rrugetimin tuaj.
                 </p>
 
                 {/* Login Button */}
@@ -30,7 +30,7 @@ export default function SignUpSuccess() {
                     to="/login"
                     className="w-full py-4 px-4 bg-[#C00F0C] text-white font-bold rounded-2xl shadow-xl shadow-red-200 hover:shadow-red-300 hover:scale-[1.01] active:scale-[0.99] focus:outline-none focus:ring-4 focus:ring-red-100 transition-all duration-300 flex items-center justify-center gap-2"
                 >
-                    <span>Kyqu Tani</span>
+                    <span>Kyçu Tani</span>
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                     </svg>

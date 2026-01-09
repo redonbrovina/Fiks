@@ -7,6 +7,11 @@ import elektriciann from './images/elektrician.jpg';
 import hidraulik from './images/hidra.jpg';
 import shtepiaku from './images/shtepiak.jpg';
 import dado from './images/dadoja.jpg'
+import faton from './images/faton.jpg'
+import azem from './images/azem.jpg'
+import besim from './images/besim-2.jpg'
+import pranvera from './images/pranvera.jpg'
+import { Link } from 'react-router-dom';
 import TestimonialCard from './clientComponents/TestimonialCard.jsx';
 
 export default function Home() {
@@ -20,18 +25,18 @@ export default function Home() {
     }
 
     const reviews = [
-        { quote: "Fantastik! Jeni me te miret!", author: "Faton Gashi" },
-        { quote: "Fiks me ka shpetuar jeten!", author: "Pranvera Misini" },
-        { quote: "Wow! Jeni te pabesueshem!", author: "Azem Jaha" },
-        { quote: "Fiks cka kam kerkuar!", author: "Faton Gashi" },
+        { quote: "Fantastik! Jeni me te miret!", author: "Faton Gashi", image: faton },
+        { quote: "Fiks me ka shpetuar jeten!", author: "Pranvera Misini", image: pranvera },
+        { quote: "Wow! Jeni te pabesueshem!", author: "Azem Jaha", image: azem },
+        { quote: "Fiks çka kam kerkuar!", author: "Besim Gashi", image: besim },
     ];
 
     return (
         <>
             <div className="hero-section-container">
                 <img src={heroImg} alt="workshop image" className="hero-section-img" />
-                <div className="hero-section">
-                    <h1><span className="fiks">Fiks</span> ç'ka te duhet</h1>
+                <div className="hero-section font-bold">
+                    <h1><span className="fiks">Fiks</span> çka te duhet</h1>
                     <p>Gjej profesionistët më të mirë për riparime dhe mbështetje IT në Kosovë.
                         Shpejt, lehtë dhe me cilësi të garantuar.</p>
                 </div>
@@ -64,13 +69,13 @@ export default function Home() {
                     </div>
 
                     <div className="text-center">
-                        <button className="bg-[#222] text-white px-6 py-3 rounded-md">Më shumë shërbime</button>
+                        <Link to='/sherbimet'><button className="bg-[#222] text-white px-6 py-3 rounded-md">Më shumë</button></Link>
                     </div>
                 </div>
             </section>
             <section className="px-[10%] py-16 bg-white">
                 <div className="mb-10">
-                    <h2 className="text-3xl font-bold">Cfare thone klientet tane?</h2>
+                    <h2 className="text-3xl font-bold">Çfare thone klientet tane?</h2>
                     <p className="text-gray-400">Mijera kliente te kenaqur ne tere Kosoven</p>
                 </div>
 

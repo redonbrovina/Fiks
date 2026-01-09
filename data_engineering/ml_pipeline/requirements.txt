@@ -1,3 +1,5 @@
 pymongo
 requests
 ruff
+pyspark
+names-dataset
