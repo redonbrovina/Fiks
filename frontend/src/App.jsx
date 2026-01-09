@@ -19,6 +19,7 @@ import ProfessionalDashboard from './pages/logged_in/perdoruesi/ProfessionalDash
 import Marketplace from './pages/logged_in/perdoruesi/Marketplace'
 import AddService from './pages/logged_in/perdoruesi/AddService'
 import Bookings from './pages/logged_in/perdoruesi/Bookings'
+import AdminReviews from './pages/logged_in/admin/AdminReviews'
 
 function App() {
   return (
@@ -53,6 +54,7 @@ function App() {
             <Route path="/admin/professionals" element={<ProfessionalsManagement />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
             <Route path="/admin/kerkesat" element={<AdminKerkesat />} />
+            <Route path="/admin/reviews" element={<AdminReviews />} />
           </Route>
         </Routes>
       </BrowserRouter>

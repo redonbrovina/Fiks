@@ -1,23 +1,23 @@
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import UserTable from '../../../components/UserTable';
-import { bookingApi, userApi, catalogApi, adminApi, tokenStorage } from '../../../services/api';
+import { bookingApi, userApi, catalogApi, adminApi, feedbackApi, tokenStorage } from '../../../services/api';
 
 // Column definitions for work requests
 const requestColumns = [
-    { 
-        key: 'pershkrimi', 
+    {
+        key: 'pershkrimi',
         label: 'Përshkrimi',
         render: (val) => <span className="font-medium">{val || 'N/A'}</span>
     },
-    { 
-        key: 'mesazhi', 
+    {
+        key: 'mesazhi',
         label: 'Mesazhi',
         render: (val) => <span className="text-gray-600 text-sm">{val || '-'}</span>
     },
-    { 
-        key: 'koha_krijimit', 
-        label: 'Data', 
+    {
+        key: 'koha_krijimit',
+        label: 'Data',
         render: (val) => val ? new Date(val).toLocaleDateString('sq-AL') : 'N/A'
     },
     {
@@ -71,6 +71,11 @@ export default function ProfessionalDashboard() {
     const [appointmentPrice, setAppointmentPrice] = useState('');
     const [profesionistiId, setProfesionistiId] = useState(null);
 
+    // Reviews state
+    const [reviews, setReviews] = useState([]);
+    const [averageRating, setAverageRating] = useState({ average_rating: 0, total_reviews: 0 });
+    const [loadingReviews, setLoadingReviews] = useState(false);
+
     useEffect(() => {
         fetchProfessionalInfo();
     }, []);
@@ -78,6 +83,7 @@ export default function ProfessionalDashboard() {
     useEffect(() => {
         if (profesionistiId) {
             fetchWorkRequests();
+            fetchReviews();
         }
     }, [profesionistiId]);
 
@@ -85,13 +91,13 @@ export default function ProfessionalDashboard() {
         try {
             setLoading(true);
             const user = await userApi.getMe();
-            
+
             if (!user) {
                 console.error('User not found');
                 setLoading(false);
                 return;
             }
-            
+
             let professionalId = null;
 
             // Try to get professional ID from user object
@@ -153,7 +159,7 @@ export default function ProfessionalDashboard() {
                 setWorkRequests([]);
                 return;
             }
-            
+
             const requests = await bookingApi.getWorkRequestsByProfessional(profesionistiId);
             setWorkRequests(Array.isArray(requests) ? requests : []);
         } catch (error) {
@@ -163,6 +169,30 @@ export default function ProfessionalDashboard() {
                 console.error('Failed to load work requests:', error);
             }
             setWorkRequests([]);
+        }
+    };
+
+    // Fetch reviews for this professional
+    const fetchReviews = async () => {
+        if (!profesionistiId) return;
+
+        try {
+            setLoadingReviews(true);
+
+            // Fetch reviews and average rating in parallel
+            const [reviewsData, ratingData] = await Promise.all([
+                feedbackApi.getReviewsByProfessional(profesionistiId),
+                feedbackApi.getAverageRating(profesionistiId)
+            ]);
+
+            setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+            setAverageRating(ratingData || { average_rating: 0, total_reviews: 0 });
+        } catch (error) {
+            console.error('Error fetching reviews:', error);
+            setReviews([]);
+            setAverageRating({ average_rating: 0, total_reviews: 0 });
+        } finally {
+            setLoadingReviews(false);
         }
     };
 
@@ -299,6 +329,82 @@ export default function ProfessionalDashboard() {
                 )}
             </div>
 
+            {/* Reviews Section */}
+            <div className="mt-8">
+                <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-2xl font-bold text-gray-900">Vlerësimet e Mia</h2>
+                    {averageRating.total_reviews > 0 && (
+                        <div className="flex items-center gap-3 bg-yellow-50 px-4 py-2 rounded-xl">
+                            <div className="flex items-center gap-1">
+                                <svg className="w-6 h-6 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span className="text-xl font-bold text-gray-900">{averageRating.average_rating}</span>
+                            </div>
+                            <span className="text-sm text-gray-600">({averageRating.total_reviews} vlerësime)</span>
+                        </div>
+                    )}
+                </div>
+
+                {loadingReviews ? (
+                    <div className="text-center py-10 text-gray-500">Duke ngarkuar vlerësimet...</div>
+                ) : reviews.length === 0 ? (
+                    <div className="bg-gray-50 rounded-xl p-6 text-center">
+                        <svg className="w-12 h-12 text-gray-300 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <p className="text-gray-500 font-medium">Nuk keni vlerësime akoma</p>
+                        <p className="text-sm text-gray-400 mt-1">Vlerësimet do të shfaqen këtu pasi klientët t'i lënë ato.</p>
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {reviews.map(review => (
+                            <div key={review.review_id} className="bg-white p-5 rounded-xl border border-gray-200 shadow-lg">
+                                <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                        {/* Stars */}
+                                        <div className="flex items-center gap-1 mb-2">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <svg
+                                                    key={star}
+                                                    className={`w-5 h-5 ${star <= review.score ? 'text-yellow-400' : 'text-gray-300'}`}
+                                                    fill="currentColor"
+                                                    viewBox="0 0 20 20"
+                                                >
+                                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                                </svg>
+                                            ))}
+                                            <span className="ml-2 text-sm text-gray-500">
+                                                {new Date(review.koha_krijimit).toLocaleDateString('sq-AL')}
+                                            </span>
+                                        </div>
+                                        {/* Message */}
+                                        {review.mesazhi && (
+                                            <p className="text-gray-700">{review.mesazhi}</p>
+                                        )}
+                                        {!review.mesazhi && (
+                                            <p className="text-gray-400 italic">Asnjë koment</p>
+                                        )}
+                                        {/* Professional Response */}
+                                        {review.pergjigje && (
+                                            <div className="mt-3 pl-4 border-l-2 border-[#C00F0C]">
+                                                <p className="text-sm text-gray-600">
+                                                    <span className="font-semibold text-[#C00F0C]">Përgjigja juaj: </span>
+                                                    {review.pergjigje.mesazhi}
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="text-2xl font-bold text-gray-200">
+                                        {review.score}/5
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
             {/* Request Detail Modal */}
             {isModalOpen && selectedRequest && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -325,11 +431,10 @@ export default function ProfessionalDashboard() {
 
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Statusi</label>
-                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${
-                                    selectedRequest.statusi?.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
+                                <span className={`px-3 py-1 rounded-full text-xs font-bold ${selectedRequest.statusi?.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                                     selectedRequest.statusi?.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
-                                    'bg-gray-100 text-gray-700'
-                                }`}>
+                                        'bg-gray-100 text-gray-700'
+                                    }`}>
                                     {selectedRequest.statusi?.status || 'Pending'}
                                 </span>
                             </div>
@@ -344,7 +449,7 @@ export default function ProfessionalDashboard() {
                             ) : (
                                 <div className="space-y-3 pt-4 border-t">
                                     <h3 className="font-semibold text-gray-900">Krijo Termin</h3>
-                                    
+
                                     <div>
                                         <label className="block text-sm font-medium text-gray-700 mb-1">Data</label>
                                         <input

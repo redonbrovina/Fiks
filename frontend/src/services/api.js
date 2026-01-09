@@ -396,3 +396,49 @@ export const bookingApi = {
         body: data,
     }),
 };
+
+/**
+ * Feedback API - Reviews and Ratings
+ */
+export const feedbackApi = {
+    // Get all reviews (with optional filters)
+    getAllReviews: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return fetchApi(`/api/reviews${queryString ? '?' + queryString : ''}`);
+    },
+
+    // Get review by ID
+    getReview: (id) => fetchApi(`/api/reviews/${id}`),
+
+    // Get reviews for a specific professional
+    getReviewsByProfessional: (profesionistiId) => fetchApi(`/api/reviews/professional/${profesionistiId}`),
+
+    // Get average rating for a professional
+    getAverageRating: (profesionistiId) => fetchApi(`/api/reviews/professional/${profesionistiId}/rating`),
+
+    // Create a new review
+    createReview: (data) => fetchApi('/api/reviews', {
+        method: 'POST',
+        body: data,
+    }),
+
+    // Update a review
+    updateReview: (id, data) => fetchApi(`/api/reviews/${id}`, {
+        method: 'PUT',
+        body: data,
+    }),
+
+    // Delete a review
+    deleteReview: (id, params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return fetchApi(`/api/reviews/${id}${queryString ? '?' + queryString : ''}`, {
+            method: 'DELETE',
+        });
+    },
+
+    // Create a response to a review (by professional)
+    createReviewResponse: (reviewId, data) => fetchApi(`/api/reviews/${reviewId}/response`, {
+        method: 'POST',
+        body: data,
+    }),
+};
