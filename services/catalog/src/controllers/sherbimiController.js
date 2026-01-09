@@ -1,13 +1,23 @@
 const { Sherbimi, Profili, Kategoria } = require('../models');
 const { validationResult } = require('express-validator');
 
-// Get all services for a professional
+// Get all services for a professional (by profesionisti_id)
 const getProfessionalServices = async (req, res) => {
     try {
         const { profesionistiId } = req.params;
 
+        // First find the profile by profesionisti_id
+        const profile = await Profili.findOne({
+            where: { profesionisti_id: profesionistiId }
+        });
+
+        if (!profile) {
+            return res.status(404).json({ error: { message: 'Professional profile not found' } });
+        }
+
+        // Then find services by profili_id
         const services = await Sherbimi.findAll({
-            where: { profili_id: profesionistiId },
+            where: { profili_id: profile.profili_id },
             include: [
                 {
                     model: Kategoria,
@@ -221,11 +231,48 @@ const getCategories = async (req, res) => {
     }
 };
 
+// Get all services with profiles (for marketplace)
+const getAllServices = async (req, res) => {
+    try {
+        const services = await Sherbimi.findAll({
+            include: [
+                {
+                    model: Profili,
+                    as: 'profili',
+                    attributes: ['profili_id', 'emri', 'email', 'nr_telefonit', 'imazh', 'rating', 'profesionisti_id'],
+                    required: true // Only return services that have profiles (professionals)
+                },
+                {
+                    model: Kategoria,
+                    as: 'kategoria',
+                    attributes: ['kategoria_id', 'lloji_kategorise'],
+                    required: false // Category is optional
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Filter out services without valid professional IDs
+        const validServices = services.filter(service => 
+            service.profili && 
+            service.profili.profesionisti_id &&
+            service.profili.profesionisti_id !== null
+        );
+
+        console.log(`Found ${services.length} total services, ${validServices.length} with valid professionals`);
+        res.json(validServices);
+    } catch (error) {
+        console.error('Error fetching all services:', error);
+        res.status(500).json({ error: { message: 'Internal server error', details: error.message } });
+    }
+};
+
 module.exports = {
     getProfessionalServices,
     getService,
     createService,
     updateService,
     deleteService,
-    getCategories
+    getCategories,
+    getAllServices
 };

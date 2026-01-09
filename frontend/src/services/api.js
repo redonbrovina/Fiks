@@ -11,7 +11,13 @@ export const tokenStorage = {
     },
 
     setUser: (user) => {
-        localStorage.setItem('user', JSON.stringify(user));
+        // Only store minimal user data needed by the frontend
+        const minimalUser = {
+            perdoruesi_id: user.perdoruesi_id,
+            emri: user.emri,
+            roles: user.rolet?.map(r => r.lloji) || []
+        };
+        localStorage.setItem('user', JSON.stringify(minimalUser));
     },
 
     getAccessToken: () => localStorage.getItem('accessToken'),
@@ -24,7 +30,7 @@ export const tokenStorage = {
 
     getUserRoles: () => {
         const user = tokenStorage.getUser();
-        return user?.rolet?.map(r => r.lloji) || [];
+        return user?.roles || [];
     },
 
     hasRole: (role) => {
@@ -111,7 +117,17 @@ async function fetchApi(endpoint, options = {}) {
         config.body = JSON.stringify(options.body);
     }
 
-    let response = await fetch(url, config);
+    let response;
+    try {
+        response = await fetch(url, config);
+    } catch (fetchError) {
+        // Handle network errors (Failed to fetch)
+        console.error('Network error in fetchApi:', fetchError);
+        const error = new Error(fetchError.message || 'Failed to fetch - check your internet connection and server status');
+        error.status = 0;
+        error.networkError = true;
+        throw error;
+    }
 
     // If we get a 401 and we have a refresh token, try to refresh
     if (response.status === 401 && tokenStorage.getRefreshToken() && !endpoint.startsWith('/api/auth/')) {
@@ -154,10 +170,26 @@ async function fetchApi(endpoint, options = {}) {
         }
     }
 
-    const data = await response.json();
+    let data;
+    try {
+        // Try to parse JSON response
+        const text = await response.text();
+        if (text) {
+            data = JSON.parse(text);
+        } else {
+            data = {};
+        }
+    } catch (parseError) {
+        console.error('Error parsing response JSON:', parseError);
+        // If response is not JSON, create error with status
+        const error = new Error(`Invalid response from server (Status: ${response.status})`);
+        error.status = response.status;
+        error.data = { message: `Server returned status ${response.status}` };
+        throw error;
+    }
 
     if (!response.ok) {
-        const error = new Error(data.error?.message || data.message || 'Something went wrong');
+        const error = new Error(data.error?.message || data.message || `Server error (${response.status})`);
         error.status = response.status;
         error.data = data;
         throw error;
@@ -207,6 +239,30 @@ export const authApi = {
  */
 export const qytetiApi = {
     getAll: () => fetchApi('/api/qytetet'),
+};
+
+/**
+ * Admin API (requires admin role)
+ */
+export const adminApi = {
+    // Users (Identity)
+    getUsers: () => fetchApi('/api/users'),
+    updateUser: (id, userData) => fetchApi(`/api/users/${id}`, {
+        method: 'PUT',
+        body: userData,
+    }),
+    deleteUser: (id) => fetchApi(`/api/users/${id}`, {
+        method: 'DELETE',
+    }),
+    // Profiles/Professionals (Catalog)
+    getProfiles: () => fetchApi('/api/v1/catalog/profiles'),
+    updateProfile: (id, profileData) => fetchApi(`/api/v1/catalog/profiles/${id}`, {
+        method: 'PUT',
+        body: profileData,
+    }),
+    deleteProfile: (id) => fetchApi(`/api/v1/catalog/profiles/${id}`, {
+        method: 'DELETE',
+    }),
 };
 
 /**
@@ -271,6 +327,7 @@ export const catalogApi = {
         method: 'DELETE',
     }),
     getCategories: () => fetchApi('/api/v1/catalog/categories'),
+    getAllServices: () => fetchApi('/api/v1/catalog/services'),
 };
 
 /**
@@ -298,7 +355,44 @@ export const bookingApi = {
         body: data,
     }),
     getAvailability: (profesionistiId) => fetchApi(`/api/liria-ores/${profesionistiId}`),
+    getAvailableSlots: (profesionistiId, date) => fetchApi(`/api/liria-ores/${profesionistiId}/slots?date=${date}`),
     deleteAvailability: (id) => fetchApi(`/api/liria-ores/${id}`, {
         method: 'DELETE',
+    }),
+
+    // Appointments (Termini)
+    createAppointment: (data) => fetchApi('/api/bookings', {
+        method: 'POST',
+        body: data,
+    }),
+    getAllAppointments: (params = {}) => {
+        const queryString = new URLSearchParams(params).toString();
+        return fetchApi(`/api/bookings${queryString ? '?' + queryString : ''}`);
+    },
+    getAppointment: (id) => fetchApi(`/api/bookings/${id}`),
+    updateAppointment: (id, data) => fetchApi(`/api/bookings/${id}`, {
+        method: 'PUT',
+        body: data,
+    }),
+    deleteAppointment: (id) => fetchApi(`/api/bookings/${id}`, {
+        method: 'DELETE',
+    }),
+
+    // Work Requests with filters
+    getWorkRequestsByProfessional: (profesionistiId) => fetchApi(`/api/kerkesa-punes?profesionisti_id=${profesionistiId}`),
+    getWorkRequestsByUser: (perdoruesiId) => fetchApi(`/api/kerkesa-punes?perdoruesi_id=${perdoruesiId}`),
+    approveWorkRequest: (id) => fetchApi(`/api/kerkesa-punes/${id}/approve`, {
+        method: 'POST',
+    }),
+    denyWorkRequest: (id) => fetchApi(`/api/kerkesa-punes/${id}/deny`, {
+        method: 'POST',
+    }),
+    assignProfessional: (id, profesionistiId) => fetchApi(`/api/kerkesa-punes/${id}/assign-professional`, {
+        method: 'POST',
+        body: { profesionisti_id: profesionistiId },
+    }),
+    createAppointmentForRequest: (id, data) => fetchApi(`/api/kerkesa-punes/${id}/create-appointment`, {
+        method: 'POST',
+        body: data,
     }),
 };

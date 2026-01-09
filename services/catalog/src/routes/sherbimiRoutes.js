@@ -6,7 +6,8 @@ const {
     createService,
     updateService,
     deleteService,
-    getCategories
+    getCategories,
+    getAllServices
 } = require('../controllers/sherbimiController');
 const { authenticateToken } = require('../middleware/auth');
 const { upload } = require('../middleware/upload');
@@ -31,6 +32,7 @@ const createServiceValidation = [
 ];
 
 // Public routes
+router.get('/services', getAllServices);
 router.get('/services/:serviceId', getService);
 router.get('/categories', getCategories);
 

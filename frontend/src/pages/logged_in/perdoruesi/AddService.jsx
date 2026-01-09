@@ -56,8 +56,15 @@ export default function AddService() {
         try {
             if (isProfessional) {
                 // Add Service (Catalog API)
-                await catalogApi.createService(formData);
-                navigate('/professional-dashboard', { state: { success: 'Shërbimi u shtua me sukses!' } });
+                const response = await catalogApi.createService(formData);
+                console.log('Service created successfully:', response);
+                
+                // Small delay to ensure data is saved
+                setTimeout(() => {
+                    navigate('/professional-dashboard', { 
+                        state: { success: 'Shërbimi u shtua me sukses!' } 
+                    });
+                }, 100);
             } else {
                 // Become Professional (Identity API)
                 const payload = {
@@ -69,17 +76,26 @@ export default function AddService() {
                         kategoria_id: parseInt(formData.kategoria_id)
                     }
                 };
-                await userApi.becomeProfessional(payload);
+                const result = await userApi.becomeProfessional(payload);
+                console.log('Became professional successfully:', result);
+                
+                // Update tokens if provided
+                if (result.accessToken && result.refreshToken) {
+                    tokenStorage.setTokens(result.accessToken, result.refreshToken);
+                    if (result.perdoruesi) {
+                        tokenStorage.setUser(result.perdoruesi);
+                    }
+                }
 
-                // Since token changes (new role), we might need to re-login or just update local storage?
-                // The API returns new tokens.
-                navigate('/professional-dashboard', { state: { success: 'Urime! Tani jeni profesionist.' } });
-                window.location.reload(); // Force reload to refresh context/state with new token
+                // Small delay to ensure data is saved, then reload
+                setTimeout(() => {
+                    window.location.href = '/professional-dashboard';
+                }, 500);
             }
         } catch (err) {
-            console.error(err);
-            setError(err.response?.data?.error?.message || 'Ndodhi një gabim gjatë procesimit.');
-        } finally {
+            console.error('Error in AddService:', err);
+            const errorMessage = err?.data?.error?.message || err?.message || 'Ndodhi një gabim gjatë procesimit.';
+            setError(errorMessage);
             setLoading(false);
         }
     };

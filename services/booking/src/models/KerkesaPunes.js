@@ -28,11 +28,11 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         kategoria_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: true
         },
         profesionisti_id: {
-            type: DataTypes.UUID,
+            type: DataTypes.INTEGER,
             allowNull: true
         }
     }, {

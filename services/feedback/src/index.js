@@ -5,8 +5,14 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
 
+const client = require('prom-client');
+
 const app = express();
 const PORT = process.env.PORT || 3004;
+
+// Metrics Registry
+const register = new client.Registry();
+client.collectDefaultMetrics({ register });
 
 // Middleware
 app.use(helmet());
@@ -17,6 +23,12 @@ app.use(express.json());
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'feedback' });
+});
+
+// Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
 });
 
 // TODO: Add routes here when implementing this service
@@ -44,6 +56,11 @@ const startServer = async () => {
             await sequelize.sync({ alter: true });
             console.log('✅ Database models synchronized');
         }
+
+        // Start Kafka consumer
+        const KafkaConsumer = require('./services/KafkaConsumer');
+        await KafkaConsumer.connect();
+        console.log('✅ Kafka consumer connected');
 
         app.listen(PORT, () => {
             console.log(`🚀 Feedback service running on port ${PORT}`);

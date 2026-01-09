@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const { register, updateBookingMetrics } = require('./services/businessMetrics');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -18,6 +19,18 @@ app.use(express.json());
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', service: 'booking' });
 });
+
+// Metrics Endpoint
+app.get('/metrics', async (req, res) => {
+    await updateBookingMetrics();
+    res.set('Content-Type', register.contentType);
+    res.end(await register.metrics());
+});
+
+// Update metrics every 30 seconds
+setInterval(() => {
+    updateBookingMetrics();
+}, 30000);
 
 const bookingRoutes = require('./routes/bookingRoutes');
 const kerkesaPunesRoutes = require('./routes/kerkesaPunesRoutes');
@@ -54,6 +67,11 @@ const startServer = async () => {
             const seedStatuses = require('./seeders/statusSeeder');
             await seedStatuses(sequelize);
         }
+
+        // Start Kafka consumer
+        const KafkaConsumer = require('./services/KafkaConsumer');
+        await KafkaConsumer.connect();
+        console.log('✅ Kafka consumer connected');
 
         app.listen(PORT, () => {
             console.log(`🚀 Booking service running on port ${PORT}`);

@@ -3,7 +3,6 @@ import Layout from './components/Layout'
 import UserLayout from './components/UserLayout'
 import AdminLayout from './components/AdminLayout'
 import About from './pages/client/About'
-import Contact from './pages/client/Contact'
 import Home from './pages/client/Home'
 import Sherbimet from './pages/client/Sherbimet'
 import SignIn from './pages/authentication/SignIn'
@@ -15,6 +14,7 @@ import AdminDashboard from './pages/logged_in/admin/AdminDashboard'
 import UserManagement from './pages/logged_in/admin/UserManagement'
 import ProfessionalsManagement from './pages/logged_in/admin/ProfessionalsManagement'
 import AdminBookings from './pages/logged_in/admin/AdminBookings'
+import AdminKerkesat from './pages/logged_in/admin/AdminKerkesat'
 import ProfessionalDashboard from './pages/logged_in/perdoruesi/ProfessionalDashboard'
 import Marketplace from './pages/logged_in/perdoruesi/Marketplace'
 import AddService from './pages/logged_in/perdoruesi/AddService'
@@ -33,10 +33,7 @@ function App() {
           {/* Client routes (Public) */}
           <Route element={<Layout />}>
             <Route index element={<Home />} />
-            <Route path="/home" element={<Home />} />
-            <Route path="/home" element={<Home />} />
             <Route path="/rreth-nesh" element={<About />} />
-            <Route path="/contact" element={<Contact />} />
             <Route path="/sherbimet" element={<Sherbimet />} />
           </Route>
 
@@ -55,6 +52,7 @@ function App() {
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/professionals" element={<ProfessionalsManagement />} />
             <Route path="/admin/bookings" element={<AdminBookings />} />
+            <Route path="/admin/kerkesat" element={<AdminKerkesat />} />
           </Route>
         </Routes>
       </BrowserRouter>
