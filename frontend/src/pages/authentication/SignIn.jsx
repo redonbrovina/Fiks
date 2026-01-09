@@ -196,7 +196,7 @@ const SignIn = () => {
                                     <span className="text-sm font-semibold text-[#444444]/70 group-hover:text-[#444444] transition-colors">Më mbaj mend</span>
                                 </label>
                                 <Link
-                                    to="/harresa-fjalekalimi"
+                                    to="/forgot-password"
                                     className="text-sm font-bold text-[#C00F0C] hover:underline underline-offset-4 transition-all"
                                 >
                                     Harruat fjalëkalimin?

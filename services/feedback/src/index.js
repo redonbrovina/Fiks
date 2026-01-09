@@ -57,6 +57,10 @@ const startServer = async () => {
         if (process.env.NODE_ENV === 'development') {
             await sequelize.sync({ alter: true });
             console.log('✅ Database models synchronized');
+
+            // Seed sample data
+            const seedReviews = require('./seeder');
+            await seedReviews();
         }
 
         // Start Kafka consumer

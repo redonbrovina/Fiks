@@ -50,6 +50,8 @@ services:
       - JWT_SECRET=${JWT_SECRET:-your-super-secret-jwt-key}
       - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-your-refresh-secret-key}
       - KAFKA_BROKERS=kafka:9092
+      - RESEND_API_KEY=re_47wMojH5_9FsEcvarWQmS2oCwWnLdrMht
+      - FRONTEND_URL=http://localhost:5173
     depends_on:
       identity-db:
         condition: service_healthy

@@ -31,11 +31,11 @@ class KafkaConsumer {
 
             // Subscribe to topics
             await this.consumer.subscribe({
-                topic: 'professional_created',
+                topics: ['professional_created', 'review_created'],
                 fromBeginning: false
             });
 
-            console.log('[KAFKA] Consumer subscribed to professional_created');
+            console.log('[KAFKA] Consumer subscribed to topics: professional_created, review_created');
 
             // Start consuming
             await this.consumer.run({
@@ -46,6 +46,8 @@ class KafkaConsumer {
 
                         if (topic === 'professional_created') {
                             await this.handleProfessionalCreated(data);
+                        } else if (topic === 'review_created') {
+                            await this.handleReviewCreated(data);
                         }
                     } catch (error) {
                         console.error('[KAFKA] Error processing message:', error);
@@ -121,7 +123,33 @@ class KafkaConsumer {
         }
     }
 
+    /**
+     * Handle review_created event from Feedback service
+     * Updates the rating of the professional profile
+     */
+    async handleReviewCreated(message) {
+        try {
+            const { profesionisti_id, rating } = message;
+
+            console.log(`[KAFKA] Processing review_created for professional: ${profesionisti_id} with rating: ${rating}`);
+
+            const profile = await Profili.findOne({ where: { profesionisti_id } });
+
+            if (!profile) {
+                console.warn(`[KAFKA] Profile not found for professional ID: ${profesionisti_id}`);
+                return;
+            }
+
+            await profile.update({ rating });
+            console.log(`[KAFKA] Updated rating for professional ${profesionisti_id} to ${rating}`);
+
+        } catch (error) {
+            console.error('[KAFKA] Error handling review_created:', error);
+        }
+    }
+
     async disconnect() {
+
         if (this.consumer) {
             await this.consumer.disconnect();
             this.isConnected = false;

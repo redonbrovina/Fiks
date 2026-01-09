@@ -8,6 +8,8 @@ import Sherbimet from './pages/client/Sherbimet'
 import SignIn from './pages/authentication/SignIn'
 import SignUp from './pages/authentication/SignUp'
 import SignUpSuccess from './pages/authentication/SignUpSuccess'
+import ForgotPassword from './pages/authentication/ForgotPassword'
+import ResetPassword from './pages/authentication/ResetPassword'
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import ClientDashboard from './pages/logged_in/perdoruesi/ClientDashboard'
 import AdminDashboard from './pages/logged_in/admin/AdminDashboard'
@@ -30,6 +32,8 @@ function App() {
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/signup-success" element={<SignUpSuccess />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Client routes (Public) */}
           <Route element={<Layout />}>

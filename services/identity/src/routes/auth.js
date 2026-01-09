@@ -36,4 +36,21 @@ router.post('/login', loginValidation, validate, AuthController.login);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', AuthController.logout);
 
+// Password Reset Routes
+router.post('/forgot-password',
+    [body('email').isEmail().withMessage('Email i pavlefshëm')],
+    validate,
+    AuthController.forgotPassword
+);
+
+router.post('/reset-password',
+    [
+        body('email').isEmail().withMessage('Email i pavlefshëm'),
+        body('code').notEmpty().withMessage('Kodi mungon').isLength({ min: 6, max: 6 }).withMessage('Kodi duhet të jetë 6 shifror'),
+        body('fjalekalimi').isLength({ min: 6 }).withMessage('Fjalëkalimi duhet të ketë të paktën 6 karaktere')
+    ],
+    validate,
+    AuthController.resetPassword
+);
+
 module.exports = router;

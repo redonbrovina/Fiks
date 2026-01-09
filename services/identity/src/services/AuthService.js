@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const { Perdoruesi, Profesionisti, Roli, RoliPerdoruesit, RefreshToken } = require('../models');
 const redisClient = require('../config/redis');
+const EmailService = require('./EmailService');
 
 class AuthService {
     /**
@@ -327,6 +329,65 @@ class AuthService {
         await this.saveRefreshToken(updatedUser.perdoruesi_id, tokens.refreshToken);
 
         return { perdoruesi: updatedUser, profesionisti, tokens };
+    }
+
+    /**
+     * Request password reset
+     */
+    /**
+     * Request password reset
+     */
+    async forgotPassword(email) {
+        console.log(`[AUTH] Forgot password request for: ${email}`);
+        const perdoruesi = await Perdoruesi.findOne({ where: { email } });
+        if (!perdoruesi) {
+            console.warn(`[AUTH] User not found: ${email}`);
+            // We don't want to reveal if a user exists or not for security
+            return;
+        }
+
+        // Generate 6-digit code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+
+        // Set token and expiry (1 hour)
+        perdoruesi.reset_token = codeHash;
+        perdoruesi.reset_token_expires = Date.now() + 3600000;
+        await perdoruesi.save();
+
+        // Send email with code
+        await EmailService.sendPasswordResetEmail(perdoruesi.email, code, perdoruesi.emri);
+        console.log(`[AUTH] Reset flow initiated for: ${email}`);
+    }
+
+    /**
+     * Reset password using code
+     */
+    async resetPassword(email, code, newPassword) {
+        const perdoruesi = await Perdoruesi.findOne({ where: { email } });
+
+        if (!perdoruesi) {
+            const error = new Error('Përdoruesi nuk u gjet/Code invalid');
+            error.status = 404;
+            throw error;
+        }
+
+        const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+
+        if (perdoruesi.reset_token !== codeHash || perdoruesi.reset_token_expires < Date.now()) {
+            const error = new Error('Kodi i pavlefshëm ose i skaduar');
+            error.status = 400;
+            throw error;
+        }
+
+        // Update password and clear token
+        perdoruesi.fjalekalimi = newPassword;
+        perdoruesi.reset_token = null;
+        perdoruesi.reset_token_expires = null;
+        await perdoruesi.save();
+
+        // Invalidate cache
+        await this.invalidateUserCache(perdoruesi.perdoruesi_id);
     }
 }
 
