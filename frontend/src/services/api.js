@@ -232,6 +232,16 @@ export const authApi = {
         }
         tokenStorage.clearTokens();
     },
+
+    forgotPassword: (email) => fetchApi('/api/auth/forgot-password', {
+        method: 'POST',
+        body: { email },
+    }),
+
+    resetPassword: (data) => fetchApi('/api/auth/reset-password', {
+        method: 'POST',
+        body: data,
+    }),
 };
 
 /**

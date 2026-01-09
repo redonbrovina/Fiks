@@ -66,6 +66,10 @@ const startServer = async () => {
             // Seed statuses
             const seedStatuses = require('./seeders/statusSeeder');
             await seedStatuses(sequelize);
+
+            // Seed sample data
+            const seedData = require('./seeders/dataSeeder');
+            await seedData(sequelize);
         }
 
         // Start Kafka consumer

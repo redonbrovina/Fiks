@@ -9,6 +9,11 @@ const { Op } = require('sequelize');
 /**
  * Create a new review
  */
+const KafkaProducer = require('../services/KafkaProducer');
+
+/**
+ * Create a new review
+ */
 exports.createReview = async (req, res) => {
     try {
         const { score, mesazhi, profesionisti_id, perdoruesi_id, termini_id } = req.body;
@@ -52,6 +57,24 @@ exports.createReview = async (req, res) => {
         });
 
         console.log(`[REVIEW] Created review ID: ${review.review_id} for professional: ${profesionisti_id}`);
+
+        // --- Calculate new average rating ---
+        const allReviews = await Review.findAll({
+            where: { profesionisti_id },
+            attributes: ['score']
+        });
+        const totalScore = allReviews.reduce((sum, r) => sum + r.score, 0);
+        const averageRating = totalScore / allReviews.length;
+        const roundedRating = Math.round(averageRating * 10) / 10;
+
+        // --- Publish Event ---
+        await KafkaProducer.publish('review_created', {
+            profesionisti_id,
+            rating: roundedRating,
+            total_reviews: allReviews.length,
+            review_id: review.review_id,
+            score: review.score
+        });
 
         res.status(201).json(review);
     } catch (error) {

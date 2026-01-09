@@ -1,7 +1,9 @@
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
+const crypto = require('crypto');
 const { Perdoruesi, Profesionisti, Roli, RoliPerdoruesit, RefreshToken } = require('../models');
 const redisClient = require('../config/redis');
+const EmailService = require('./EmailService');
 
 class AuthService {
     /**
@@ -327,6 +329,61 @@ class AuthService {
         await this.saveRefreshToken(updatedUser.perdoruesi_id, tokens.refreshToken);
 
         return { perdoruesi: updatedUser, profesionisti, tokens };
+    }
+
+    /**
+     * Request password reset
+     */
+    async forgotPassword(email) {
+        console.log(`[AUTH] Forgot password request for: ${email}`);
+        const perdoruesi = await Perdoruesi.findOne({ where: { email } });
+        if (!perdoruesi) {
+            console.warn(`[AUTH] User not found: ${email}`);
+            // We don't want to reveal if a user exists or not for security
+            return;
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+        // Set token and expiry (1 hour)
+        perdoruesi.reset_token = resetTokenHash;
+        perdoruesi.reset_token_expires = Date.now() + 3600000;
+        await perdoruesi.save();
+
+        // Send email
+        await EmailService.sendPasswordResetEmail(perdoruesi.email, resetToken, perdoruesi.emri);
+        console.log(`[AUTH] Reset flow initiated for: ${email}`);
+    }
+
+    /**
+     * Reset password using token
+     */
+    async resetPassword(token, newPassword) {
+        const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        const perdoruesi = await Perdoruesi.findOne({
+            where: {
+                reset_token: resetTokenHash,
+                reset_token_expires: { [require('sequelize').Op.gt]: Date.now() }
+            }
+        });
+
+        if (!perdoruesi) {
+            const error = new Error('Token i pavlefshëm ose i skaduar');
+            error.status = 400;
+            throw error;
+        }
+
+        // Update password and clear token
+        perdoruesi.fjalekalimi = newPassword;
+        perdoruesi.reset_token = null;
+        perdoruesi.reset_token_expires = null;
+        await perdoruesi.save();
+
+        // Invalidate cache
+        await this.invalidateUserCache(perdoruesi.perdoruesi_id);
     }
 }
 

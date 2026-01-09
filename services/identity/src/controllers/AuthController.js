@@ -110,6 +110,32 @@ class AuthController {
             next(error);
         }
     }
+
+    /**
+     * POST /api/auth/forgot-password
+     */
+    async forgotPassword(req, res, next) {
+        try {
+            const { email } = req.body;
+            await AuthService.forgotPassword(email);
+            res.json({ message: 'Nëse ekziston një llogari me këtë email, do të pranoni udhëzimet për rivendosjen e fjalëkalimit.' });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     */
+    async resetPassword(req, res, next) {
+        try {
+            const { token, fjalekalimi } = req.body;
+            await AuthService.resetPassword(token, fjalekalimi);
+            res.json({ message: 'Fjalëkalimi u rivendos me sukses. Tani mund të kyçeni.' });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = new AuthController();
