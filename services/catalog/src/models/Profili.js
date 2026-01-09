@@ -37,6 +37,10 @@ module.exports = (sequelize) => {
             type: DataTypes.DECIMAL(3, 2),
             allowNull: true,
             defaultValue: 0
+        },
+        pershkrimi: {
+            type: DataTypes.TEXT,
+            allowNull: true
         }
     }, {
         tableName: 'profili',

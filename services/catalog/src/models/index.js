@@ -11,6 +11,7 @@ const Profili = require('./Profili')(sequelize);
 const Sherbimi = require('./Sherbimi')(sequelize);
 const Kategoria = require('./Kategoria')(sequelize);
 const SherbimiKategoria = require('./SherbimiKategoria')(sequelize);
+const Pervoja = require('./Pervoja')(sequelize);
 
 // =====================
 // ASSOCIATIONS
@@ -19,6 +20,10 @@ const SherbimiKategoria = require('./SherbimiKategoria')(sequelize);
 // Profili has many Sherbimet
 Profili.hasMany(Sherbimi, { foreignKey: 'profili_id', as: 'sherbimet' });
 Sherbimi.belongsTo(Profili, { foreignKey: 'profili_id', as: 'profili' });
+
+// Profili has many Pervoja (experiences)
+Profili.hasMany(Pervoja, { foreignKey: 'profesionisti_id', sourceKey: 'profesionisti_id', as: 'pervojat' });
+Pervoja.belongsTo(Profili, { foreignKey: 'profesionisti_id', targetKey: 'profesionisti_id', as: 'profili' });
 
 // Sherbimi belongs to Kategoria
 Sherbimi.belongsTo(Kategoria, { foreignKey: 'kategoria_id', as: 'kategoria' });
@@ -47,5 +52,7 @@ module.exports = {
     Profili,
     Sherbimi,
     Kategoria,
-    SherbimiKategoria
+    SherbimiKategoria,
+    Pervoja
 };
+

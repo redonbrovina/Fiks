@@ -311,16 +311,40 @@ export const catalogApi = {
     deleteProfile: (profesionistiId) => fetchApi(`/api/v1/catalog/profile/${profesionistiId}`, {
         method: 'DELETE',
     }),
-    uploadProfileImage: (profesionistiId, imageFile) => {
+    uploadProfileImage: async (profesionistiId, imageFile) => {
         const formData = new FormData();
         formData.append('image', imageFile);
 
-        return fetchApi(`/api/v1/catalog/profile/${profesionistiId}/upload-image`, {
+        const url = `${API_BASE}/api/v1/catalog/profile/${profesionistiId}/upload-image`;
+        const accessToken = tokenStorage.getAccessToken();
+
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {}, // Let browser set Content-Type for FormData
+            headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
             body: formData,
         });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error?.message || 'Upload failed');
+        }
+
+        return response.json();
     },
+
+    // Experience (Pervoja) methods
+    getExperiences: (profesionistiId) => fetchApi(`/api/v1/catalog/experience/${profesionistiId}`),
+    createExperience: (experienceData) => fetchApi('/api/v1/catalog/experience', {
+        method: 'POST',
+        body: experienceData,
+    }),
+    updateExperience: (id, experienceData) => fetchApi(`/api/v1/catalog/experience/${id}`, {
+        method: 'PUT',
+        body: experienceData,
+    }),
+    deleteExperience: (id) => fetchApi(`/api/v1/catalog/experience/${id}`, {
+        method: 'DELETE',
+    }),
 
     // Services methods
     getProfessionalServices: (profesionistiId) => fetchApi(`/api/v1/catalog/professional/${profesionistiId}/services`),

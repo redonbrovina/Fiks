@@ -21,6 +21,7 @@ import ProfessionalDashboard from './pages/logged_in/perdoruesi/ProfessionalDash
 import Marketplace from './pages/logged_in/perdoruesi/Marketplace'
 import AddService from './pages/logged_in/perdoruesi/AddService'
 import Bookings from './pages/logged_in/perdoruesi/Bookings'
+import Profile from './pages/logged_in/perdoruesi/Profile'
 import AdminReviews from './pages/logged_in/admin/AdminReviews'
 
 function App() {
@@ -49,6 +50,7 @@ function App() {
             <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/add-service" element={<AddService />} />
             <Route path="/bookings" element={<Bookings />} />
+            <Route path="/profile" element={<Profile />} />
           </Route>
 
           {/* Logged in routes (admin) */}

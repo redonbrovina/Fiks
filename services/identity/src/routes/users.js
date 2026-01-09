@@ -8,16 +8,16 @@ const router = express.Router();
 // Public routes
 router.get('/qytetet', PerdoruesiController.getQytetet);
 
-// Admin routes (require admin role)
-router.get('/', authMiddleware, adminMiddleware, PerdoruesiController.getAllUsers);
-router.put('/:id', authMiddleware, adminMiddleware, PerdoruesiController.updateUser);
-router.delete('/:id', authMiddleware, adminMiddleware, PerdoruesiController.deleteUser);
-
-// Protected routes (require authentication)
+// Protected routes for current user (MUST come before /:id routes!)
 router.get('/me', authMiddleware, PerdoruesiController.getMe);
 router.put('/me', authMiddleware, PerdoruesiController.updateMe);
 router.post('/me/professional', authMiddleware, PerdoruesiController.becomeProfessional);
 router.put('/me/professional', authMiddleware, PerdoruesiController.updateProfessional);
+
+// Admin routes (require admin role)
+router.get('/', authMiddleware, adminMiddleware, PerdoruesiController.getAllUsers);
+router.put('/:id', authMiddleware, adminMiddleware, PerdoruesiController.updateUser);
+router.delete('/:id', authMiddleware, adminMiddleware, PerdoruesiController.deleteUser);
 
 // Public user lookup (must be after /me to avoid conflict)
 router.get('/:id', PerdoruesiController.getById);

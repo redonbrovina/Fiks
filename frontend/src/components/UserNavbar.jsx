@@ -1,9 +1,30 @@
+import { useState, useEffect } from 'react';
 import { useNavigate, NavLink, Link } from 'react-router-dom';
 import { authApi, tokenStorage } from '../services/api';
-import fiksLogo from '../assets/images/fiks.png';
 
 export default function UserNavbar() {
     const navigate = useNavigate();
+    const [profileImage, setProfileImage] = useState(null);
+    const user = tokenStorage.getUser();
+
+    useEffect(() => {
+        // Get profile image from localStorage
+        const storedUser = tokenStorage.getUser();
+        if (storedUser?.profileImage) {
+            setProfileImage(storedUser.profileImage);
+        }
+
+        // Listen for storage changes (when profile image is updated)
+        const handleStorageChange = () => {
+            const updatedUser = tokenStorage.getUser();
+            if (updatedUser?.profileImage) {
+                setProfileImage(updatedUser.profileImage);
+            }
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
 
     const handleLogout = async () => {
         try {
@@ -15,6 +36,20 @@ export default function UserNavbar() {
             tokenStorage.clearTokens();
             navigate('/login');
         }
+    };
+
+    const handleProfileClick = () => {
+        navigate('/profile');
+    };
+
+    const getImageUrl = (imagePath) => {
+        if (!imagePath) return null;
+        // Check if it's a base64 image (for regular users)
+        if (imagePath.startsWith('data:image')) return imagePath;
+        // Check if it's a full URL
+        if (imagePath.startsWith('http')) return imagePath;
+        // Otherwise it's a server path
+        return `/api/v1/catalog${imagePath}`;
     };
 
     const navLinkClass = ({ isActive }) =>
@@ -39,10 +74,27 @@ export default function UserNavbar() {
                 >
                     Dil
                 </button>
-                <div className="w-10 h-10 bg-[#C00F0C]/5 rounded-full flex items-center justify-center border border-[#C00F0C]/10">
-                    <span className="text-[#C00F0C] font-bold text-sm">{tokenStorage.getUser().emri.charAt(0).toUpperCase()}</span>
-                </div>
+                <button
+                    onClick={handleProfileClick}
+                    className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2 border-[#C00F0C]/20 hover:border-[#C00F0C]/50 transition-all duration-300 hover:scale-105 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#C00F0C]/30"
+                    title="Shko te Profili"
+                >
+                    {profileImage ? (
+                        <img
+                            src={getImageUrl(profileImage)}
+                            alt="Profile"
+                            className="w-full h-full object-cover"
+                        />
+                    ) : (
+                        <div className="w-full h-full bg-[#C00F0C]/5 flex items-center justify-center">
+                            <span className="text-[#C00F0C] font-bold text-sm">
+                                {user?.emri?.charAt(0)?.toUpperCase() || '?'}
+                            </span>
+                        </div>
+                    )}
+                </button>
             </div>
         </nav>
     );
 }
+

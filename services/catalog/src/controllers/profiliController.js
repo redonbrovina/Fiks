@@ -93,7 +93,7 @@ const updateProfile = async (req, res) => {
         }
 
         const { profesionistiId } = req.params;
-        const { emri, email, nr_telefonit, imazh } = req.body;
+        const { emri, email, nr_telefonit, imazh, pershkrimi } = req.body;
 
         const profile = await Profili.findOne({
             where: { profesionisti_id: profesionistiId }
@@ -109,6 +109,7 @@ const updateProfile = async (req, res) => {
         if (email !== undefined) updateData.email = email;
         if (nr_telefonit !== undefined) updateData.nr_telefonit = nr_telefonit;
         if (imazh !== undefined) updateData.imazh = imazh;
+        if (pershkrimi !== undefined) updateData.pershkrimi = pershkrimi;
 
         await profile.update(updateData);
 
@@ -127,7 +128,7 @@ const createProfile = async (req, res) => {
             return res.status(400).json({ error: { message: 'Validation failed', details: errors.array() } });
         }
 
-        const { emri, email, nr_telefonit, imazh, profesionisti_id } = req.body;
+        const { emri, email, nr_telefonit, imazh, profesionisti_id, pershkrimi } = req.body;
 
         // Check if profile already exists for this profesionisti_id
         const existingProfile = await Profili.findOne({
@@ -143,7 +144,8 @@ const createProfile = async (req, res) => {
             email,
             nr_telefonit,
             imazh,
-            profesionisti_id
+            profesionisti_id,
+            pershkrimi
         });
 
         res.status(201).json(profile);
