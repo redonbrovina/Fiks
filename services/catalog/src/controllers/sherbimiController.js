@@ -1,13 +1,23 @@
 const { Sherbimi, Profili, Kategoria } = require('../models');
 const { validationResult } = require('express-validator');
 
-// Get all services for a professional
+// Get all services for a professional (by profesionisti_id)
 const getProfessionalServices = async (req, res) => {
     try {
         const { profesionistiId } = req.params;
 
+        // First find the profile by profesionisti_id
+        const profile = await Profili.findOne({
+            where: { profesionisti_id: profesionistiId }
+        });
+
+        if (!profile) {
+            return res.status(404).json({ error: { message: 'Professional profile not found' } });
+        }
+
+        // Then find services by profili_id
         const services = await Sherbimi.findAll({
-            where: { profili_id: profesionistiId },
+            where: { profili_id: profile.profili_id },
             include: [
                 {
                     model: Kategoria,

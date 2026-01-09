@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
     const [activeSection, setActiveSection] = useState('system');
+    const navigate = useNavigate();
     const GRAFANA_URL = 'http://localhost:3000';
     const DASHBOARD_UID = 'fiks-overview';
 
@@ -56,6 +58,12 @@ export default function AdminDashboard() {
                         className={`px-4 py-2 rounded-xl font-medium transition-all ${activeSection === 'business' ? 'bg-[#C00F0C] text-white' : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
                     >
                         📊 Biznesi
+                    </button>
+                    <button
+                        onClick={() => navigate('/admin/kerkesat')}
+                        className="px-4 py-2 rounded-xl font-medium transition-all bg-white/10 text-white/70 hover:bg-white/20"
+                    >
+                        📋 Kërkesat
                     </button>
                 </div>
             </div>

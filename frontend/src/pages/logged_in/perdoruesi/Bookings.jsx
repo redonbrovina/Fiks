@@ -285,6 +285,7 @@ export default function Bookings() {
                                             )}
                                             <div className="mt-3 flex flex-wrap gap-2">
                                                 <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+                                                    request.statusi?.status === 'Approved' ? 'bg-green-100 text-green-700' :
                                                     request.statusi?.status === 'Confirmed' ? 'bg-green-100 text-green-700' :
                                                     request.statusi?.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
                                                     'bg-gray-100 text-gray-700'
@@ -295,9 +296,16 @@ export default function Bookings() {
                                                     {new Date(request.koha_krijimit).toLocaleDateString('sq-AL')}
                                                 </span>
                                                 {request.terminet && request.terminet.length > 0 && (
-                                                    <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
-                                                        Ka Termin
-                                                    </span>
+                                                    <>
+                                                        <span className="px-3 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                                                            Ka Termin
+                                                        </span>
+                                                        {request.terminet[0].cmimi && (
+                                                            <span className="px-3 py-1 rounded-full text-xs bg-green-100 text-green-700 font-bold">
+                                                                €{parseFloat(request.terminet[0].cmimi).toFixed(2)}
+                                                            </span>
+                                                        )}
+                                                    </>
                                                 )}
                                             </div>
                                         </div>

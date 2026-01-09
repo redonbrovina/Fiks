@@ -381,7 +381,18 @@ export const bookingApi = {
     // Work Requests with filters
     getWorkRequestsByProfessional: (profesionistiId) => fetchApi(`/api/kerkesa-punes?profesionisti_id=${profesionistiId}`),
     getWorkRequestsByUser: (perdoruesiId) => fetchApi(`/api/kerkesa-punes?perdoruesi_id=${perdoruesiId}`),
+    approveWorkRequest: (id) => fetchApi(`/api/kerkesa-punes/${id}/approve`, {
+        method: 'POST',
+    }),
     denyWorkRequest: (id) => fetchApi(`/api/kerkesa-punes/${id}/deny`, {
         method: 'POST',
+    }),
+    assignProfessional: (id, profesionistiId) => fetchApi(`/api/kerkesa-punes/${id}/assign-professional`, {
+        method: 'POST',
+        body: { profesionisti_id: profesionistiId },
+    }),
+    createAppointmentForRequest: (id, data) => fetchApi(`/api/kerkesa-punes/${id}/create-appointment`, {
+        method: 'POST',
+        body: data,
     }),
 };
