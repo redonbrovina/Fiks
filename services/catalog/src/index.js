@@ -6,6 +6,7 @@ const morgan = require('morgan');
 const { sequelize } = require('./models');
 const routes = require('./routes');
 const KafkaConsumer = require('./services/KafkaConsumer');
+const RedisCache = require('./services/RedisCache');
 const { runSeeder } = require('./seeder');
 const { register, updateCatalogMetrics } = require('./services/businessMetrics');
 const swaggerUi = require('swagger-ui-express');
@@ -78,6 +79,9 @@ const startServer = async () => {
         // Start Kafka consumer
         await KafkaConsumer.connect();
         console.log('✅ Kafka consumer connected');
+
+        // Connect Redis Cache (non-blocking - continues if Redis unavailable)
+        await RedisCache.connect();
 
         app.listen(PORT, () => {
             console.log(`🚀 Catalog service running on port ${PORT}`);

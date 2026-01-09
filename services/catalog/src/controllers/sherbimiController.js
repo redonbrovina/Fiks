@@ -1,5 +1,6 @@
 const { Sherbimi, Profili, Kategoria } = require('../models');
 const { validationResult } = require('express-validator');
+const RedisCache = require('../services/RedisCache');
 
 // Get all services for a professional (by profesionisti_id)
 const getProfessionalServices = async (req, res) => {
@@ -95,6 +96,9 @@ const createService = async (req, res) => {
             profili_id: profile.profili_id
         });
 
+        // Invalidate services cache when a new service is created
+        await RedisCache.del('marketplace:services:all');
+
         // Fetch the created service with associations
         const createdService = await Sherbimi.findOne({
             where: { sherbimi_id: service.sherbimi_id },
@@ -155,6 +159,9 @@ const updateService = async (req, res) => {
 
         await service.update(updateData);
 
+        // Invalidate services cache when a service is updated
+        await RedisCache.del('marketplace:services:all');
+
         // Fetch updated service with associations
         const updatedService = await Sherbimi.findOne({
             where: { sherbimi_id: serviceId },
@@ -201,6 +208,9 @@ const deleteService = async (req, res) => {
 
         await service.destroy();
 
+        // Invalidate services cache when a service is deleted
+        await RedisCache.del('marketplace:services:all');
+
         res.json({ message: 'Service deleted successfully' });
     } catch (error) {
         console.error('Error deleting service:', error);
@@ -208,9 +218,16 @@ const deleteService = async (req, res) => {
     }
 };
 
-// Get all categories
+// Get all categories (with caching)
 const getCategories = async (req, res) => {
     try {
+        // Try to get from cache first
+        const cacheKey = 'catalog:categories:all';
+        const cached = await RedisCache.get(cacheKey);
+        if (cached) {
+            return res.json(cached);
+        }
+
         const categories = await Kategoria.findAll({
             include: [
                 {
@@ -224,6 +241,9 @@ const getCategories = async (req, res) => {
             }
         });
 
+        // Cache for 10 minutes (categories don't change often)
+        await RedisCache.set(cacheKey, categories, 600);
+
         res.json(categories);
     } catch (error) {
         console.error('Error fetching categories:', error);
@@ -231,9 +251,16 @@ const getCategories = async (req, res) => {
     }
 };
 
-// Get all services with profiles (for marketplace)
+// Get all services with profiles (for marketplace) - with caching
 const getAllServices = async (req, res) => {
     try {
+        // Try to get from cache first
+        const cacheKey = 'marketplace:services:all';
+        const cached = await RedisCache.get(cacheKey);
+        if (cached) {
+            return res.json(cached);
+        }
+
         const services = await Sherbimi.findAll({
             include: [
                 {
@@ -253,13 +280,17 @@ const getAllServices = async (req, res) => {
         });
 
         // Filter out services without valid professional IDs
-        const validServices = services.filter(service => 
-            service.profili && 
+        const validServices = services.filter(service =>
+            service.profili &&
             service.profili.profesionisti_id &&
             service.profili.profesionisti_id !== null
         );
 
         console.log(`Found ${services.length} total services, ${validServices.length} with valid professionals`);
+
+        // Cache for 2 minutes (marketplace data can change more frequently)
+        await RedisCache.set(cacheKey, validServices, 120);
+
         res.json(validServices);
     } catch (error) {
         console.error('Error fetching all services:', error);

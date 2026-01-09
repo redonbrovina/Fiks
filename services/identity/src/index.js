@@ -9,6 +9,7 @@ const client = require('prom-client');
 const redisClient = require('./config/redis');
 const KafkaProducer = require('./services/KafkaProducer');
 const { registerMetrics, updateBusinessMetrics } = require('./services/businessMetrics');
+const { auditMiddleware } = require('./middleware/auditLog');
 
 // Swagger
 const swaggerUi = require('swagger-ui-express');
@@ -48,6 +49,9 @@ app.use(helmet());
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
+
+// Audit Logging Middleware (logs all requests for security compliance)
+app.use(auditMiddleware);
 
 // Health check
 app.get('/health', (req, res) => {
