@@ -1,4 +1,4 @@
-const { KerkesaPunes, KerkesaPunesStatus, Termini } = require('../models');
+const { KerkesaPunes, KerkesaPunesStatus, Termini, sequelize } = require('../models');
 
 exports.createKerkesaPunes = async (req, res) => {
     try {
@@ -40,11 +40,26 @@ exports.createKerkesaPunes = async (req, res) => {
 
 exports.getAllKerkesaPunes = async (req, res) => {
     try {
+        const { profesionisti_id, perdoruesi_id } = req.query;
+        const whereClause = {};
+
+        // Filter by professional if provided
+        if (profesionisti_id) {
+            whereClause.profesionisti_id = parseInt(profesionisti_id);
+        }
+
+        // Filter by user if provided
+        if (perdoruesi_id) {
+            whereClause.perdoruesi_id = parseInt(perdoruesi_id);
+        }
+
         const kerkesat = await KerkesaPunes.findAll({
+            where: whereClause,
             include: [
                 { model: KerkesaPunesStatus, as: 'statusi' },
                 { model: Termini, as: 'terminet' }
-            ]
+            ],
+            order: [['koha_krijimit', 'DESC']]
         });
         res.json(kerkesat);
     } catch (error) {
@@ -111,5 +126,69 @@ exports.deleteKerkesaPunes = async (req, res) => {
     } catch (error) {
         console.error('Error deleting KerkesaPunes:', error);
         res.status(500).json({ error: { message: 'Failed to delete work request' } });
+    }
+};
+
+// Deny/Reject a work request (and cancel associated appointment if exists)
+exports.denyKerkesaPunes = async (req, res) => {
+    const transaction = await sequelize.transaction();
+    try {
+        const { id } = req.params;
+        const workRequestId = parseInt(id, 10);
+        
+        console.log('🔴 Denying work request with ID:', id, 'parsed as:', workRequestId);
+        
+        if (isNaN(workRequestId)) {
+            await transaction.rollback();
+            return res.status(400).json({ error: { message: 'Invalid work request ID' } });
+        }
+        
+        const kerkesa = await KerkesaPunes.findByPk(workRequestId, {
+            include: [{ model: Termini, as: 'terminet' }],
+            transaction
+        });
+
+        console.log('🔴 Found work request:', kerkesa ? `ID: ${kerkesa.kerkesa_punes_id}` : 'NOT FOUND');
+
+        if (!kerkesa) {
+            await transaction.rollback();
+            console.log('❌ Work request not found with ID:', workRequestId);
+            return res.status(404).json({ error: { message: 'Work request not found' } });
+        }
+
+        // Get or create 'Rejected' status
+        const [rejectedStatus] = await KerkesaPunesStatus.findOrCreate({
+            where: { status: 'Rejected' },
+            defaults: { status: 'Rejected' },
+            transaction
+        });
+
+        // Update work request status to Rejected
+        await kerkesa.update({
+            kerkesa_punes_status_id: rejectedStatus.kerkesa_punes_status_id
+        }, { transaction });
+
+        // Delete associated appointments if they exist
+        if (kerkesa.terminet && kerkesa.terminet.length > 0) {
+            for (const termin of kerkesa.terminet) {
+                await termin.destroy({ transaction });
+            }
+        }
+
+        await transaction.commit();
+
+        // Fetch updated work request with associations
+        const updatedKerkesa = await KerkesaPunes.findByPk(id, {
+            include: [
+                { model: KerkesaPunesStatus, as: 'statusi' },
+                { model: Termini, as: 'terminet' }
+            ]
+        });
+
+        res.json(updatedKerkesa);
+    } catch (error) {
+        await transaction.rollback();
+        console.error('Error denying KerkesaPunes:', error);
+        res.status(500).json({ error: { message: 'Failed to deny work request' } });
     }
 };

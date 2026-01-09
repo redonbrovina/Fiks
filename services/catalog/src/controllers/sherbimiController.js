@@ -221,11 +221,48 @@ const getCategories = async (req, res) => {
     }
 };
 
+// Get all services with profiles (for marketplace)
+const getAllServices = async (req, res) => {
+    try {
+        const services = await Sherbimi.findAll({
+            include: [
+                {
+                    model: Profili,
+                    as: 'profili',
+                    attributes: ['profili_id', 'emri', 'email', 'nr_telefonit', 'imazh', 'rating', 'profesionisti_id'],
+                    required: true // Only return services that have profiles (professionals)
+                },
+                {
+                    model: Kategoria,
+                    as: 'kategoria',
+                    attributes: ['kategoria_id', 'lloji_kategorise'],
+                    required: false // Category is optional
+                }
+            ],
+            order: [['createdAt', 'DESC']]
+        });
+
+        // Filter out services without valid professional IDs
+        const validServices = services.filter(service => 
+            service.profili && 
+            service.profili.profesionisti_id &&
+            service.profili.profesionisti_id !== null
+        );
+
+        console.log(`Found ${services.length} total services, ${validServices.length} with valid professionals`);
+        res.json(validServices);
+    } catch (error) {
+        console.error('Error fetching all services:', error);
+        res.status(500).json({ error: { message: 'Internal server error', details: error.message } });
+    }
+};
+
 module.exports = {
     getProfessionalServices,
     getService,
     createService,
     updateService,
     deleteService,
-    getCategories
+    getCategories,
+    getAllServices
 };
