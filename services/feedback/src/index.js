@@ -4,6 +4,7 @@ const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
+const reviewRoutes = require('./routes/reviewRoutes');
 
 const client = require('prom-client');
 
@@ -15,7 +16,7 @@ const register = new client.Registry();
 client.collectDefaultMetrics({ register });
 
 // Middleware
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors());
 app.use(morgan('dev'));
 app.use(express.json());
@@ -31,7 +32,8 @@ app.get('/metrics', async (req, res) => {
     res.end(await register.metrics());
 });
 
-// TODO: Add routes here when implementing this service
+// Review routes
+app.use('/reviews', reviewRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import UserTable from '../../../components/UserTable';
-import { bookingApi, catalogApi, tokenStorage } from '../../../services/api';
+import { bookingApi, catalogApi, feedbackApi, tokenStorage } from '../../../services/api';
 
 // Column definitions
 const marketColumns = [
@@ -8,23 +8,25 @@ const marketColumns = [
     { key: 'titulli', label: 'Shërbimi' },
     { key: 'kategoria', label: 'Kategoria', render: (val) => val?.lloji_kategorise || 'N/A' },
     { key: 'cmimi', label: 'Çmimi', render: (val) => val ? `€${parseFloat(val).toFixed(2)}` : 'N/A' },
-    { key: 'rating', label: 'Rating', render: (val, row) => {
-        try {
-            const rating = row?.profili?.rating || 0;
-            const ratingNum = typeof rating === 'number' ? rating : parseFloat(rating) || 0;
-            return (
-                <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    {isNaN(ratingNum) ? '0.0' : ratingNum.toFixed(1)}
-                </span>
-            );
-        } catch (e) {
-            console.warn('Error rendering rating:', e, row);
-            return <span className="text-gray-400">N/A</span>;
+    {
+        key: 'rating', label: 'Rating', render: (val, row) => {
+            try {
+                const rating = row?.profili?.rating || 0;
+                const ratingNum = typeof rating === 'number' ? rating : parseFloat(rating) || 0;
+                return (
+                    <span className="flex items-center gap-1">
+                        <svg className="w-4 h-4 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        {isNaN(ratingNum) ? '0.0' : ratingNum.toFixed(1)}
+                    </span>
+                );
+            } catch (e) {
+                console.warn('Error rendering rating:', e, row);
+                return <span className="text-gray-400">N/A</span>;
+            }
         }
-    }},
+    },
 ];
 
 export default function Marketplace() {
@@ -48,25 +50,47 @@ export default function Marketplace() {
             setError(null);
             const data = await catalogApi.getAllServices();
             console.log('Fetched services from API:', data);
-            
+
             // Ensure data is an array
             if (Array.isArray(data)) {
                 // Filter out services without profiles (professionals)
                 const validServices = data.filter(service => {
                     try {
-                        return service && 
-                               service.profili && 
-                               service.profili.profesionisti_id &&
-                               service.profili.profesionisti_id !== null &&
-                               service.profili.profesionisti_id !== undefined;
+                        return service &&
+                            service.profili &&
+                            service.profili.profesionisti_id &&
+                            service.profili.profesionisti_id !== null &&
+                            service.profili.profesionisti_id !== undefined;
                     } catch (e) {
                         console.warn('Error filtering service:', e, service);
                         return false;
                     }
                 });
                 console.log('Valid services with professionals:', validServices.length);
-                setServices(validServices);
-                
+
+                // Enrich services with live ratings from Feedback service
+                const enrichedServices = await Promise.all(
+                    validServices.map(async (service) => {
+                        try {
+                            const ratingData = await feedbackApi.getAverageRating(service.profili.profesionisti_id);
+                            return {
+                                ...service,
+                                profili: {
+                                    ...service.profili,
+                                    rating: ratingData.average_rating || 0,
+                                    total_reviews: ratingData.total_reviews || 0
+                                }
+                            };
+                        } catch (e) {
+                            // If rating fetch fails, keep original rating (0)
+                            console.warn('Error fetching rating for professional:', service.profili.profesionisti_id, e);
+                            return service;
+                        }
+                    })
+                );
+
+                setServices(enrichedServices);
+
                 if (validServices.length === 0 && data.length > 0) {
                     console.warn('Services found but no valid professionals:', data);
                     setError('U gjetën shërbime por pa profesionistë të lidhur. Ju lutem kontrolloni databazën.');
@@ -92,7 +116,7 @@ export default function Marketplace() {
 
     useEffect(() => {
         let isMounted = true;
-        
+
         const loadServices = async () => {
             try {
                 await fetchServices();
@@ -104,9 +128,9 @@ export default function Marketplace() {
                 }
             }
         };
-        
+
         loadServices();
-        
+
         return () => {
             isMounted = false;
         };
@@ -129,7 +153,7 @@ export default function Marketplace() {
                 setAvailableSlots(null);
                 return;
             }
-            
+
             setLoadingSlots(true);
             // Ensure professional ID is integer
             const professionalIdInt = parseInt(selectedService.profili.profesionisti_id, 10);
@@ -138,7 +162,7 @@ export default function Marketplace() {
                 setAvailableSlots(null);
                 return;
             }
-            
+
             const slots = await bookingApi.getAvailableSlots(
                 professionalIdInt,
                 selectedDate
@@ -159,7 +183,7 @@ export default function Marketplace() {
                 console.error('No service provided to handleBook');
                 return;
             }
-            
+
             setSelectedService(service);
             setDesc(service.titulli || '');
             setPrice(service.cmimi || service.profili?.cmimi || '');
@@ -277,11 +301,11 @@ export default function Marketplace() {
             } catch (appointmentError) {
                 console.error('Error creating appointment:', appointmentError);
                 const errorMsg = appointmentError?.data?.error?.message || appointmentError?.message || 'Unknown error';
-                const isNetworkError = appointmentError?.networkError || appointmentError?.status === 0 || 
-                    errorMsg.toLowerCase().includes('fetch') || 
+                const isNetworkError = appointmentError?.networkError || appointmentError?.status === 0 ||
+                    errorMsg.toLowerCase().includes('fetch') ||
                     errorMsg.toLowerCase().includes('network') ||
                     errorMsg.toLowerCase().includes('failed to fetch');
-                
+
                 if (errorMsg.includes('conflicts') || errorMsg.includes('Time slot conflicts')) {
                     alert('Kjo orë është e zënë. Ju lutem zgjidhni një orë tjetër.');
                 } else if (errorMsg.includes('outside professional') || errorMsg.includes('availability')) {
@@ -321,17 +345,17 @@ export default function Marketplace() {
             setPrice('');
             setAvailableSlots(null);
             setSelectedService(null);
-            
+
             // Refresh services list to show updated data
             await fetchServices();
         } catch (error) {
             console.error('Unexpected error in submitBooking:', error);
             const errorMsg = error?.data?.error?.message || error?.message || 'Unknown error';
-            const isNetworkError = error?.networkError || error?.status === 0 || 
-                errorMsg.toLowerCase().includes('fetch') || 
+            const isNetworkError = error?.networkError || error?.status === 0 ||
+                errorMsg.toLowerCase().includes('fetch') ||
                 errorMsg.toLowerCase().includes('network') ||
                 errorMsg.toLowerCase().includes('failed to fetch');
-            
+
             if (isNetworkError) {
                 console.error('Network error details:', {
                     message: errorMsg,

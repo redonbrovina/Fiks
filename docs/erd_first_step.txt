@@ -53,15 +53,23 @@ Kerkesa_punes
 Oferta 
 Termini
 
+Perdoruesi krijon nje kerkese te punes per profesionistin, profesionistit i vie kerkesa te cilen duhet ta shikoje 
+per ta aprovuar nese mund ta kryeje, gjate kesaj kohe perdoruesi cakton edhe nje termin te lire te pershtatshem per te.
+ Nese e kryen kerkesen profesionisti pranon ate dhe i regjistrohet puna ne terminet e tij.
+
+Puna ka disa statuse dhe vendoset nga profesionisti si e perfunduar kur ai e perfundon
+
+Kur puna caktohet e perfunduar perdoruesi mund te kryeje review
+
+
 
 Feedback Service
 
 Review
-Reputacioni
 
-Reputacioni ---> aggreagate score of previous reviews for a worker
 Review ---> personal review of something
 
+Perdoruesi ben review profesionistin per sherbimet e veta.
 
 
 

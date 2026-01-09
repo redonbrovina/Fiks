@@ -1,5 +1,6 @@
 const { Termini, KerkesaPunes, KerkesaPunesStatus, LiriaOres, sequelize } = require('../models');
 const { Op } = require('sequelize');
+const KafkaProducer = require('../services/KafkaProducer');
 
 // Create appointment (Termini) from work request with conflict checking
 exports.createBooking = async (req, res) => {
@@ -8,8 +9,8 @@ exports.createBooking = async (req, res) => {
         const { kerkesa_punes_id, koha_fillimit, koha_mbarimit, cmimi } = req.body;
 
         if (!kerkesa_punes_id || !koha_fillimit || !koha_mbarimit) {
-            return res.status(400).json({ 
-                error: { message: 'Work request ID, start time, and end time are required' } 
+            return res.status(400).json({
+                error: { message: 'Work request ID, start time, and end time are required' }
             });
         }
 
@@ -24,8 +25,8 @@ exports.createBooking = async (req, res) => {
         const profesionisti_id = kerkesa.profesionisti_id;
         if (!profesionisti_id) {
             await transaction.rollback();
-            return res.status(400).json({ 
-                error: { message: 'Work request must be assigned to a professional' } 
+            return res.status(400).json({
+                error: { message: 'Work request must be assigned to a professional' }
             });
         }
 
@@ -50,27 +51,27 @@ exports.createBooking = async (req, res) => {
         const conflictingAppointment = existingAppointments.find(apt => {
             // Skip if this is for the same work request
             if (apt.kerkesa_punes_id === parseInt(kerkesa_punes_id)) return false;
-            
+
             if (!apt.koha_fillimit || !apt.koha_mbarimit) return false;
-            
+
             const aptStart = new Date(apt.koha_fillimit);
             const aptEnd = new Date(apt.koha_mbarimit);
-            
+
             // Check if appointments overlap (two appointments overlap if one starts before the other ends)
             return (startTime < aptEnd && endTime > aptStart);
         });
 
         if (conflictingAppointment) {
             await transaction.rollback();
-            return res.status(409).json({ 
-                error: { 
+            return res.status(409).json({
+                error: {
                     message: 'Time slot conflicts with existing appointment',
                     conflictingAppointment: {
                         id: conflictingAppointment.termini_id,
                         start: conflictingAppointment.koha_fillimit,
                         end: conflictingAppointment.koha_mbarimit
                     }
-                } 
+                }
             });
         }
 
@@ -98,11 +99,11 @@ exports.createBooking = async (req, res) => {
                 // Convert TIME fields to HH:mm format for comparison
                 let slotStart = String(slot.koha_fillimit);
                 let slotEnd = String(slot.koha_mbarimit);
-                
+
                 // Handle different TIME formats (HH:mm:ss or HH:mm)
                 if (slotStart.length > 5) slotStart = slotStart.slice(0, 5);
                 if (slotEnd.length > 5) slotEnd = slotEnd.slice(0, 5);
-                
+
                 // Check if requested time is completely within this availability slot
                 // Start time must be >= slot start, end time must be <= slot end
                 return startTimeOnly >= slotStart && endTimeOnly <= slotEnd;
@@ -110,7 +111,7 @@ exports.createBooking = async (req, res) => {
 
             if (!isWithinAvailability) {
                 await transaction.rollback();
-                
+
                 // Format available slots for better error message
                 const availableHours = availabilitySlots.map(slot => {
                     let start = String(slot.koha_fillimit);
@@ -119,9 +120,9 @@ exports.createBooking = async (req, res) => {
                     if (end.length > 5) end = end.slice(0, 5);
                     return `${start} - ${end}`;
                 }).join(', ');
-                
-                return res.status(400).json({ 
-                    error: { 
+
+                return res.status(400).json({
+                    error: {
                         message: `Selected time slot (${startTimeOnly} - ${endTimeOnly}) is outside professional's availability hours for this day. Available hours: ${availableHours || 'None'}`,
                         requestedTime: {
                             start: startTimeOnly,
@@ -138,7 +139,7 @@ exports.createBooking = async (req, res) => {
                                 end: end
                             };
                         })
-                    } 
+                    }
                 });
             }
         }
@@ -177,6 +178,14 @@ exports.createBooking = async (req, res) => {
             }]
         });
 
+        // Publish booking_completed event to Kafka for review prompts
+        await KafkaProducer.publish('booking_completed', {
+            termini_id: booking.termini_id,
+            profesionisti_id: profesionisti_id,
+            perdoruesi_id: kerkesa.perdoruesi_id,
+            timestamp: new Date().toISOString()
+        });
+
         res.status(201).json(createdBooking);
     } catch (error) {
         await transaction.rollback();
@@ -189,7 +198,7 @@ exports.getAllBookings = async (req, res) => {
     try {
         const { profesionisti_id, perdoruesi_id } = req.query;
         const whereClause = {};
-        
+
         const includeClause = [{
             model: KerkesaPunes,
             as: 'kerkesaPunes',
