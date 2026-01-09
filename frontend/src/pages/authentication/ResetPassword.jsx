@@ -1,23 +1,21 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import { authApi } from '../../services/api';
 
 export default function ResetPassword() {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
-    const token = searchParams.get('token');
+    const location = useLocation();
 
+    // Pre-fill email if passed from previous step
+    const initialEmail = location.state?.email || '';
+
+    const [email, setEmail] = useState(initialEmail);
+    const [code, setCode] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState(false);
-
-    useEffect(() => {
-        if (!token) {
-            setError('Token i pavlefshëm. Ju lutem kërkoni një link të ri.');
-        }
-    }, [token]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -32,11 +30,16 @@ export default function ResetPassword() {
             return;
         }
 
+        if (code.length !== 6) {
+            setError('Kodi duhet të jetë 6 shifror.');
+            return;
+        }
+
         setIsLoading(true);
         setError('');
 
         try {
-            await authApi.resetPassword({ token, fjalekalimi: password });
+            await authApi.resetPassword({ email, code, fjalekalimi: password });
             setSuccess(true);
             setTimeout(() => {
                 navigate('/login');
@@ -77,7 +80,7 @@ export default function ResetPassword() {
                     Rivendos Fjalëkalimin
                 </h2>
                 <p className="mt-2 text-center text-sm text-gray-600">
-                    Shkruani fjalëkalimin tuaj të ri më poshtë.
+                    Shkruani kodin e marrë në email dhe fjalëkalimin tuaj të ri.
                 </p>
             </div>
 
@@ -91,6 +94,35 @@ export default function ResetPassword() {
                                 </div>
                             </div>
                         )}
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                                Email Adresa
+                            </label>
+                            <input
+                                type="email"
+                                required
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#C00F0C] transition-all"
+                                placeholder="emri@shembull.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-bold text-gray-700 mb-2">
+                                Kodi i Konfirmimit (6 shifra)
+                            </label>
+                            <input
+                                type="text"
+                                required
+                                maxLength="6"
+                                value={code}
+                                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                                className="appearance-none block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-[#C00F0C] tracking-widest text-center text-lg font-bold"
+                                placeholder="000000"
+                            />
+                        </div>
 
                         <div>
                             <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -122,7 +154,7 @@ export default function ResetPassword() {
 
                         <button
                             type="submit"
-                            disabled={isLoading || !token}
+                            disabled={isLoading}
                             className="w-full py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-[#C00F0C] hover:bg-[#a50d0a] focus:ring-2 focus:ring-[#C00F0C] disabled:opacity-50 transition-all transform hover:scale-[1.02] active:scale-[0.98]"
                         >
                             {isLoading ? 'Duke u procesuar...' : 'Rivendos Fjalëkalimin'}

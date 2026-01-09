@@ -334,6 +334,9 @@ class AuthService {
     /**
      * Request password reset
      */
+    /**
+     * Request password reset
+     */
     async forgotPassword(email) {
         console.log(`[AUTH] Forgot password request for: ${email}`);
         const perdoruesi = await Perdoruesi.findOne({ where: { email } });
@@ -343,35 +346,36 @@ class AuthService {
             return;
         }
 
-        // Generate reset token
-        const resetToken = crypto.randomBytes(32).toString('hex');
-        const resetTokenHash = crypto.createHash('sha256').update(resetToken).digest('hex');
+        // Generate 6-digit code
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
+        const codeHash = crypto.createHash('sha256').update(code).digest('hex');
 
         // Set token and expiry (1 hour)
-        perdoruesi.reset_token = resetTokenHash;
+        perdoruesi.reset_token = codeHash;
         perdoruesi.reset_token_expires = Date.now() + 3600000;
         await perdoruesi.save();
 
-        // Send email
-        await EmailService.sendPasswordResetEmail(perdoruesi.email, resetToken, perdoruesi.emri);
+        // Send email with code
+        await EmailService.sendPasswordResetEmail(perdoruesi.email, code, perdoruesi.emri);
         console.log(`[AUTH] Reset flow initiated for: ${email}`);
     }
 
     /**
-     * Reset password using token
+     * Reset password using code
      */
-    async resetPassword(token, newPassword) {
-        const resetTokenHash = crypto.createHash('sha256').update(token).digest('hex');
-
-        const perdoruesi = await Perdoruesi.findOne({
-            where: {
-                reset_token: resetTokenHash,
-                reset_token_expires: { [require('sequelize').Op.gt]: Date.now() }
-            }
-        });
+    async resetPassword(email, code, newPassword) {
+        const perdoruesi = await Perdoruesi.findOne({ where: { email } });
 
         if (!perdoruesi) {
-            const error = new Error('Token i pavlefshëm ose i skaduar');
+            const error = new Error('Përdoruesi nuk u gjet/Code invalid');
+            error.status = 404;
+            throw error;
+        }
+
+        const codeHash = crypto.createHash('sha256').update(code).digest('hex');
+
+        if (perdoruesi.reset_token !== codeHash || perdoruesi.reset_token_expires < Date.now()) {
+            const error = new Error('Kodi i pavlefshëm ose i skaduar');
             error.status = 400;
             throw error;
         }

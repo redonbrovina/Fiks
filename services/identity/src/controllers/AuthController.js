@@ -129,8 +129,8 @@ class AuthController {
      */
     async resetPassword(req, res, next) {
         try {
-            const { token, fjalekalimi } = req.body;
-            await AuthService.resetPassword(token, fjalekalimi);
+            const { email, code, fjalekalimi } = req.body;
+            await AuthService.resetPassword(email, code, fjalekalimi);
             res.json({ message: 'Fjalëkalimi u rivendos me sukses. Tani mund të kyçeni.' });
         } catch (error) {
             next(error);

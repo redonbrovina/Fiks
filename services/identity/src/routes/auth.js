@@ -45,7 +45,8 @@ router.post('/forgot-password',
 
 router.post('/reset-password',
     [
-        body('token').notEmpty().withMessage('Token mungon'),
+        body('email').isEmail().withMessage('Email i pavlefshëm'),
+        body('code').notEmpty().withMessage('Kodi mungon').isLength({ min: 6, max: 6 }).withMessage('Kodi duhet të jetë 6 shifror'),
         body('fjalekalimi').isLength({ min: 6 }).withMessage('Fjalëkalimi duhet të ketë të paktën 6 karaktere')
     ],
     validate,
