@@ -31,18 +31,138 @@ const loginValidation = [
 ];
 
 // Routes
+/**
+ * @swagger
+ * /auth/register:
+ *   post:
+ *     summary: Register a new user or professional
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [emri, email, fjalekalimi, adresa, qyteti_id]
+ *             properties:
+ *               emri:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               fjalekalimi:
+ *                 type: string
+ *               adresa:
+ *                 type: string
+ *               qyteti_id:
+ *                 type: integer
+ *               isProfessional:
+ *                 type: boolean
+ *               bio:
+ *                 type: string
+ *               service:
+ *                 type: object
+ *                 properties:
+ *                   titulli:
+ *                     type: string
+ *                   cmimi:
+ *                     type: number
+ *                   kategoria_id:
+ *                     type: integer
+ *     responses:
+ *       201:
+ *         description: Created
+ *       400:
+ *         description: Validation error
+ */
 router.post('/register', registerValidation, validate, AuthController.register);
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Login user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, fjalekalimi]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               fjalekalimi:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Login successful
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 accessToken:
+ *                   type: string
+ *                 refreshToken:
+ *                   type: string
+ *       401:
+ *         description: Invalid credentials
+ */
 router.post('/login', loginValidation, validate, AuthController.login);
 router.post('/refresh', AuthController.refresh);
 router.post('/logout', AuthController.logout);
 
 // Password Reset Routes
+/**
+ * @swagger
+ * /auth/forgot-password:
+ *   post:
+ *     summary: Request password reset code
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email]
+ *             properties:
+ *               email:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Code sent
+ */
 router.post('/forgot-password',
     [body('email').isEmail().withMessage('Email i pavlefshëm')],
     validate,
     AuthController.forgotPassword
 );
 
+/**
+ * @swagger
+ * /auth/reset-password:
+ *   post:
+ *     summary: Reset password using code
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [email, code, fjalekalimi]
+ *             properties:
+ *               email:
+ *                 type: string
+ *               code:
+ *                 type: string
+ *               fjalekalimi:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ */
 router.post('/reset-password',
     [
         body('email').isEmail().withMessage('Email i pavlefshëm'),

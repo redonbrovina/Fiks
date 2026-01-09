@@ -10,6 +10,10 @@ const redisClient = require('./config/redis');
 const KafkaProducer = require('./services/KafkaProducer');
 const { registerMetrics, updateBusinessMetrics } = require('./services/businessMetrics');
 
+// Swagger
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
+
 // Import routes
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
@@ -21,6 +25,9 @@ const PORT = process.env.PORT || 3001;
 // Metrics Registry
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Register business metrics
 registerMetrics(register);
