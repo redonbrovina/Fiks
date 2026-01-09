@@ -543,7 +543,7 @@ const SignUp = () => {
                             <p className="text-center text-[#444444]/60 font-bold text-sm">
                                 Tashme keni llogari?{' '}
                                 <Link to="/login" className="text-[#C00F0C] hover:underline underline-offset-4 font-bold transition-all">
-                                    Kyqu ketu
+                                    Kyçu ketu
                                 </Link>
                             </p>
                         </div>

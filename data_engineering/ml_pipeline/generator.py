@@ -2,23 +2,10 @@ import random
 import pymongo
 import time
 
-# List of training names (Albanian & International mix)
-TRAINING_NAMES = [
-    "Agon", "Arben", "Artan", "Astrit", "Bashkim", "Besim", "Besnik", "Blerim", "Bujar",
-    "Dardan", "Drilon", "Edon", "Egzon", "Endrit", "Enver", "Erim", "Ermal", "Erzen",
-    "Fatmir", "Faton", "Fisnik", "Flamur", "Gentian", "Gezim", "Ilir", "Isa", "Kastriot",
-    "Kujtim", "Kushtrim", "Lavdim", "Liridon", "Luan", "Lulzim", "Mentor", "Mergim",
-    "Naim", "Nderim", "Parin", "Perparim", "Petrit", "Qamil", "Qendrim", "Ramiz", "Redon",
-    "Rexhep", "Rrezart", "Samir", "Shaban", "Shkelzen", "Skender", "Sokol", "Spartak",
-    "Valon", "Veton", "Visar", "Xhevdet", "Yll", "Zef"
-]
 
-TRAINING_SURNAMES = [
-    "Krasniqi", "Gashi", "Berisha", "Morina", "Shala", "Bytyqi", "Hasani", 
-    "Kastrati", "Rexhepi", "Hoxha", "Mehmeti", "Aliu", "Kryeziu", "Hyseni", 
-    "Bajrami", "Kabashi", "Thaqi", "Isufi", "Osmani", "Ibrahimi", "Dauti",
-    "Syla", "Nuhiu", "Limani", "Salihu", "Maliqi", "Ferati"
-]
+# Fallback constants
+TRAINING_NAMES = ["Agon", "Arben", "Artan", "Astrit", "Bashkim", "Besim", "Besnik", "Blerim", "Bujar"]
+TRAINING_SURNAMES = ["Krasniqi", "Gashi", "Berisha", "Morina", "Shala", "Bytyqi", "Hasani"]
 
 class MarkovNameGenerator:
     def __init__(self, names, order=2):
@@ -60,11 +47,26 @@ def main():
     # Connect to MongoDB
     client = pymongo.MongoClient("mongodb://mongodb:27017/")
     db = client["fiks_ml"]
+    
+    # FETCH TRAINING DATA FROM MONGODB GOLD ZONE (Populated by Spark)
+    training_cursor = db["gold_training_set"].find({})
+    training_data = list(training_cursor)
+    
+    if training_data:
+        names = [d["first_name"] for d in training_data if "first_name" in d]
+        surnames = [d["last_name"] for d in training_data if "last_name" in d]
+        print(f"Loaded {len(names)} names and {len(surnames)} surnames from MongoDB Lake.")
+    else:
+        # Fallback to defaults if Spark hasn't run yet
+        names = TRAINING_NAMES
+        surnames = TRAINING_SURNAMES
+        print("Using fallback training data.")
+
     collection = db["generated_names"]
     
     # Train Models
-    name_generator = MarkovNameGenerator(TRAINING_NAMES)
-    surname_generator = MarkovNameGenerator(TRAINING_SURNAMES)
+    name_generator = MarkovNameGenerator(names)
+    surname_generator = MarkovNameGenerator(surnames)
     
     print("Generating unique identities...")
     count = 0
