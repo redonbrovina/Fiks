@@ -8,6 +8,8 @@ const routes = require('./routes');
 const KafkaConsumer = require('./services/KafkaConsumer');
 const { runSeeder } = require('./seeder');
 const { register, updateCatalogMetrics } = require('./services/businessMetrics');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 const app = express();
 const PORT = process.env.PORT || 3002;
@@ -32,6 +34,9 @@ app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
 });
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Update metrics every 30 seconds
 setInterval(() => {

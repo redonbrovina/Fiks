@@ -32,16 +32,128 @@ const createServiceValidation = [
 ];
 
 // Public routes
+/**
+ * @swagger
+ * /services:
+ *   get:
+ *     summary: Get all services
+ *     tags: [Services]
+ *     responses:
+ *       200:
+ *         description: List of services
+ */
 router.get('/services', getAllServices);
+/**
+ * @swagger
+ * /services/{serviceId}:
+ *   get:
+ *     summary: Get service by ID
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: serviceId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Service details
+ */
 router.get('/services/:serviceId', getService);
+/**
+ * @swagger
+ * /categories:
+ *   get:
+ *     summary: Get all categories
+ *     tags: [Generic]
+ *     responses:
+ *       200:
+ *         description: List of categories
+ */
 router.get('/categories', getCategories);
 
 // Professional services (public view)
+/**
+ * @swagger
+ * /professional/{profesionistiId}/services:
+ *   get:
+ *     summary: Get services for a professional
+ *     tags: [Services]
+ *     parameters:
+ *       - in: path
+ *         name: profesionistiId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: List of services
+ */
 router.get('/professional/:profesionistiId/services', getProfessionalServices);
 
 // Protected routes (require authentication)
+/**
+ * @swagger
+ * /services:
+ *   post:
+ *     summary: Create a new service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [titulli]
+ *             properties:
+ *               titulli:
+ *                 type: string
+ *               cmimi:
+ *                 type: number
+ *     responses:
+ *       201:
+ *         description: Service created
+ */
 router.post('/services', authenticateToken, createServiceValidation, createService);
+/**
+ * @swagger
+ * /services/{serviceId}:
+ *   put:
+ *     summary: Update service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: serviceId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Service updated
+ */
 router.put('/services/:serviceId', authenticateToken, serviceValidation, updateService);
+/**
+ * @swagger
+ * /services/{serviceId}:
+ *   delete:
+ *     summary: Delete service
+ *     tags: [Services]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: serviceId
+ *         required: true
+ *         schema:
+ *           type: integer
+ *     responses:
+ *       200:
+ *         description: Service deleted
+ */
 router.delete('/services/:serviceId', authenticateToken, deleteService);
 
 module.exports = router;
