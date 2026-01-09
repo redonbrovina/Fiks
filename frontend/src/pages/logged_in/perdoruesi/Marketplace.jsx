@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import UserTable from '../../../components/UserTable';
 import { bookingApi, catalogApi, feedbackApi, tokenStorage } from '../../../services/api';
 
@@ -29,6 +29,21 @@ const marketColumns = [
     },
 ];
 
+// Category icons mapping
+const categoryIcons = {
+    'Hidraulik': '🔧',
+    'Elektricist': '⚡',
+    'Pastrim': '🧹',
+    'Riparime': '🔨',
+    'Teknologji': '💻',
+    'Transport': '🚗',
+    'Ndërtim': '🏗️',
+    'Mobilim': '🪑',
+    'Kopshtari': '🌱',
+    'Gatim': '🍳',
+    'default': '📋'
+};
+
 export default function Marketplace() {
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -43,6 +58,12 @@ export default function Marketplace() {
     const [price, setPrice] = useState('');
     const [availableSlots, setAvailableSlots] = useState(null);
     const [loadingSlots, setLoadingSlots] = useState(false);
+
+    // Category filtering state
+    const [categories, setCategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [loadingCategories, setLoadingCategories] = useState(true);
 
     const fetchServices = useCallback(async () => {
         try {
@@ -114,27 +135,67 @@ export default function Marketplace() {
         }
     }, []);
 
+    // Fetch categories
+    const fetchCategories = useCallback(async () => {
+        try {
+            setLoadingCategories(true);
+            const data = await catalogApi.getCategories();
+            console.log('Fetched categories:', data);
+            if (Array.isArray(data)) {
+                setCategories(data);
+            }
+        } catch (err) {
+            console.error('Error fetching categories:', err);
+        } finally {
+            setLoadingCategories(false);
+        }
+    }, []);
+
+    // Filter services based on selected category
+    const filteredServices = useMemo(() => {
+        if (!selectedCategory) {
+            return services;
+        }
+        return services.filter(service => {
+            const serviceKategoriaId = service.kategoria?.kategoria_id || service.kategoria_id;
+            // Check if matches main category
+            if (serviceKategoriaId === selectedCategory.kategoria_id) {
+                return true;
+            }
+            // Check if matches subcategory
+            if (selectedCategory.nenKategorite && Array.isArray(selectedCategory.nenKategorite)) {
+                return selectedCategory.nenKategorite.some(sub => sub.kategoria_id === serviceKategoriaId);
+            }
+            return false;
+        });
+    }, [services, selectedCategory]);
+
+    // Get main categories for quick filter bar (first 5)
+    const mainCategories = useMemo(() => {
+        return categories.slice(0, 5);
+    }, [categories]);
+
     useEffect(() => {
         let isMounted = true;
 
-        const loadServices = async () => {
+        const loadData = async () => {
             try {
-                await fetchServices();
+                await Promise.all([fetchServices(), fetchCategories()]);
             } catch (err) {
                 if (isMounted) {
-                    console.error('Failed to load services:', err);
+                    console.error('Failed to load data:', err);
                     setError('Dështoi ngarkimi i shërbimeve');
                     setLoading(false);
                 }
             }
         };
 
-        loadServices();
+        loadData();
 
         return () => {
             isMounted = false;
         };
-    }, [fetchServices]);
+    }, [fetchServices, fetchCategories]);
 
     useEffect(() => {
         if (selectedService && selectedService.profili && selectedService.profili.profesionisti_id && selectedDate) {
@@ -412,16 +473,107 @@ export default function Marketplace() {
                 </div>
             )}
 
-            {/* Marketplace Table */}
-            {services.length === 0 ? (
-                <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-gray-200/50 border border-gray-100 text-center py-10">
-                    <p className="text-gray-500 font-medium mb-2">Nuk u gjetën shërbime.</p>
-                    <p className="text-sm text-gray-400">Profesionistët mund të shtojnë shërbimet e tyre në "Shto Shërbim".</p>
+            {/* Category Filter Bar */}
+            <div className="bg-white rounded-2xl p-4 shadow-lg shadow-gray-200/50 border border-gray-100">
+                <div className="flex flex-wrap items-center gap-3">
+                    {/* "All" button */}
+                    <button
+                        onClick={() => setSelectedCategory(null)}
+                        className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200 ${!selectedCategory
+                            ? 'bg-gradient-to-r from-[#C00F0C] to-[#e63946] text-white shadow-lg shadow-red-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                            }`}
+                    >
+                        Të Gjitha
+                    </button>
+
+                    {/* Main category pills */}
+                    {!loadingCategories && mainCategories.map(category => (
+                        <button
+                            key={category.kategoria_id}
+                            onClick={() => setSelectedCategory(category)}
+                            className={`px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-200 flex items-center gap-2 ${selectedCategory?.kategoria_id === category.kategoria_id
+                                ? 'bg-gradient-to-r from-[#C00F0C] to-[#e63946] text-white shadow-lg shadow-red-200'
+                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                }`}
+                        >
+                            <span>{categoryIcons[category.lloji_kategorise] || categoryIcons['default']}</span>
+                            {category.lloji_kategorise}
+                        </button>
+                    ))}
+
+                    {/* Show All Categories button */}
+                    {categories.length > 0 && (
+                        <button
+                            onClick={() => setIsCategoryModalOpen(true)}
+                            className="px-4 py-2 rounded-xl font-semibold text-sm bg-gray-800 text-white hover:bg-gray-700 transition-all duration-200 flex items-center gap-2 ml-auto"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                            Të Gjitha Kategoritë ({categories.length})
+                        </button>
+                    )}
+
+                    {loadingCategories && (
+                        <span className="text-sm text-gray-400 animate-pulse">Duke ngarkuar kategoritë...</span>
+                    )}
                 </div>
-            ) : Array.isArray(services) && services.length > 0 ? (
+
+                {/* Selected category indicator */}
+                {selectedCategory && (
+                    <div className="mt-3 pt-3 border-t border-gray-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <span className="font-medium">Filtër aktiv:</span>
+                            <span className="bg-red-100 text-red-800 px-3 py-1 rounded-full font-semibold flex items-center gap-1">
+                                {categoryIcons[selectedCategory.lloji_kategorise] || categoryIcons['default']}
+                                {selectedCategory.lloji_kategorise}
+                            </span>
+                            {selectedCategory.nenKategorite && selectedCategory.nenKategorite.length > 0 && (
+                                <span className="text-gray-400">
+                                    (+{selectedCategory.nenKategorite.length} nën-kategori)
+                                </span>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => setSelectedCategory(null)}
+                            className="text-gray-400 hover:text-red-600 transition-colors"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            {/* Marketplace Table */}
+            {filteredServices.length === 0 ? (
+                <div className="bg-white rounded-[2rem] p-6 shadow-xl shadow-gray-200/50 border border-gray-100 text-center py-10">
+                    {selectedCategory ? (
+                        <>
+                            <p className="text-gray-500 font-medium mb-2">Nuk u gjetën shërbime në këtë kategori.</p>
+                            <p className="text-sm text-gray-400 mb-4">
+                                Kategoria: {selectedCategory.lloji_kategorise}
+                            </p>
+                            <button
+                                onClick={() => setSelectedCategory(null)}
+                                className="px-4 py-2 bg-[#C00F0C] text-white rounded-lg hover:bg-[#a50d0a] transition-colors"
+                            >
+                                Shiko të gjitha shërbimet
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <p className="text-gray-500 font-medium mb-2">Nuk u gjetën shërbime.</p>
+                            <p className="text-sm text-gray-400">Profesionistët mund të shtojnë shërbimet e tyre në "Shto Shërbim".</p>
+                        </>
+                    )}
+                </div>
+            ) : Array.isArray(filteredServices) && filteredServices.length > 0 ? (
                 <UserTable
                     columns={marketColumns}
-                    data={services}
+                    data={filteredServices}
                     onAction={handleBook}
                     actionLabel="Rezervo"
                     searchPlaceholder="Kërko shërbime ose profesionistë..."
@@ -543,6 +695,101 @@ export default function Marketplace() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Category Selection Modal */}
+            {isCategoryModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-2xl w-full max-w-3xl p-6 shadow-2xl animate-in zoom-in-95 duration-200 max-h-[85vh] overflow-hidden flex flex-col">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-gray-900">
+                                Zgjidhni Kategorinë
+                            </h2>
+                            <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-400 hover:text-gray-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="overflow-y-auto flex-1">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {categories.map(category => (
+                                    <div
+                                        key={category.kategoria_id}
+                                        className="border border-gray-200 rounded-xl p-4 hover:border-[#C00F0C]/30 hover:shadow-lg transition-all duration-200"
+                                    >
+                                        {/* Main Category */}
+                                        <button
+                                            onClick={() => {
+                                                setSelectedCategory(category);
+                                                setIsCategoryModalOpen(false);
+                                            }}
+                                            className={`w-full text-left p-3 rounded-lg mb-2 transition-all duration-200 flex items-center gap-3 ${selectedCategory?.kategoria_id === category.kategoria_id
+                                                ? 'bg-gradient-to-r from-[#C00F0C] to-[#e63946] text-white shadow-lg'
+                                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                                }`}
+                                        >
+                                            <span className="text-2xl">{categoryIcons[category.lloji_kategorise] || categoryIcons['default']}</span>
+                                            <div>
+                                                <span className="font-bold text-lg">{category.lloji_kategorise}</span>
+                                                {category.nenKategorite && category.nenKategorite.length > 0 && (
+                                                    <p className={`text-sm ${selectedCategory?.kategoria_id === category.kategoria_id ? 'text-white/80' : 'text-gray-500'}`}>
+                                                        {category.nenKategorite.length} nën-kategori
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </button>
+
+                                        {/* Subcategories */}
+                                        {category.nenKategorite && category.nenKategorite.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 pl-4">
+                                                {category.nenKategorite.map(sub => (
+                                                    <button
+                                                        key={sub.kategoria_id}
+                                                        onClick={() => {
+                                                            // Create a pseudo-category for subcategory filtering
+                                                            setSelectedCategory({
+                                                                kategoria_id: sub.kategoria_id,
+                                                                lloji_kategorise: sub.lloji_kategorise,
+                                                                nenKategorite: []
+                                                            });
+                                                            setIsCategoryModalOpen(false);
+                                                        }}
+                                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all duration-200 ${selectedCategory?.kategoria_id === sub.kategoria_id
+                                                            ? 'bg-red-100 text-red-700 ring-2 ring-red-500'
+                                                            : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+                                                            }`}
+                                                    >
+                                                        {sub.lloji_kategorise}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="mt-6 pt-4 border-t border-gray-100 flex gap-3">
+                            <button
+                                onClick={() => {
+                                    setSelectedCategory(null);
+                                    setIsCategoryModalOpen(false);
+                                }}
+                                className="flex-1 px-4 py-3 border border-gray-200 text-gray-700 font-bold rounded-xl hover:bg-gray-50 transition-colors"
+                            >
+                                Pastro Filtrin
+                            </button>
+                            <button
+                                onClick={() => setIsCategoryModalOpen(false)}
+                                className="flex-1 px-4 py-3 bg-[#C00F0C] text-white font-bold rounded-xl hover:bg-[#a50d0a] shadow-lg shadow-red-200 transition-colors"
+                            >
+                                Mbyll
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
