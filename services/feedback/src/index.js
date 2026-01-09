@@ -5,6 +5,8 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 const { sequelize } = require('./models');
 const reviewRoutes = require('./routes/reviewRoutes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerSpec = require('./config/swagger');
 
 const client = require('prom-client');
 
@@ -31,6 +33,9 @@ app.get('/metrics', async (req, res) => {
     res.set('Content-Type', register.contentType);
     res.end(await register.metrics());
 });
+
+// Swagger Documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Review routes
 app.use('/reviews', reviewRoutes);

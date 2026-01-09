@@ -31,7 +31,7 @@ export default function Home() {
             <div className="hero-section-container">
                 <img src={heroImg} alt="workshop image" className="hero-section-img" />
                 <div className="hero-section">
-                    <h1><span className="fiks">Fiks</span> c'ka te duhet</h1>
+                    <h1><span className="fiks">Fiks</span> ç'ka te duhet</h1>
                     <p>Gjej profesionistët më të mirë për riparime dhe mbështetje IT në Kosovë.
                         Shpejt, lehtë dhe me cilësi të garantuar.</p>
                 </div>

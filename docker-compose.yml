@@ -269,6 +269,32 @@ services:
     depends_on:
       - prometheus
 
+  # ===========================================
+  # BIG DATA & ML STORAGE
+  # ===========================================
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=fiks_ml
+    volumes:
+      - mongodb-data:/data/db
+
+  # ===========================================
+  # ML/AI PIPELINE (ETL)
+  # ===========================================
+  ml-pipeline:
+    build:
+      context: ./data_engineering/ml_pipeline
+      dockerfile: Dockerfile
+    depends_on:
+      - mongodb
+      - identity
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - IDENTITY_API_URL=http://identity:3001/api/auth/register
+
 volumes:
   identity-db-data:
   catalog-db-data:
@@ -279,3 +305,4 @@ volumes:
   redis-data:
   prometheus-data:
   grafana-data:
+  mongodb-data:

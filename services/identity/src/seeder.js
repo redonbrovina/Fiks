@@ -33,33 +33,6 @@ async function runSeeder() {
     console.log(`Seeded ${roles.length} roles`);
 
     if (process.env.NODE_ENV === 'development') {
-        const clientNames = [
-            'Arben Krasniqi', 'Teuta Berisha', 'Liridon Gashi', 'Vlora Shala', 'Bekim Morina',
-            'Fatmire Bytyqi', 'Driton Aliu', 'Shqipe Hoti', 'Gentian Rama', 'Blerta Osmani'
-        ];
-
-        // Create 10 Klient (Customers)
-        for (let i = 1; i <= 10; i++) {
-            const email = `klient${i}@fiks.com`;
-            const name = clientNames[i - 1];
-            const city = seededCities[i % seededCities.length];
-
-            const existing = await Perdoruesi.findOne({ where: { email } });
-            if (!existing) {
-                const user = await Perdoruesi.create({
-                    emri: name,
-                    email,
-                    fjalekalimi: 'password123',
-                    adresa: `Rruga e Klienteve, Nr. ${i}, ${city.emri}`,
-                    nr_telefonit: `+383 44 111 00${i - 1}`,
-                    qyteti_id: city.qyteti_id
-                });
-                await user.addRolet(seededRoles['klient']);
-            } else if (existing.emri.startsWith('Klient ')) {
-                await existing.update({ emri: name });
-            }
-        }
-        console.log('Seeded 10 Klient users');
 
         // Create 10 Professionals
         const professionalData = [
